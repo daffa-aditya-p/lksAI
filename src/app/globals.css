@@ -1,0 +1,533 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Target tap minimal 44px untuk dipakai cepat di lapangan (mobile-first). */
+button,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* Background dekoratif untuk landing/login — grid halus + glow merah PMI. */
+.bg-hero {
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(60rem 40rem at 75% -10%, rgba(200, 16, 46, 0.1), transparent 60%),
+    radial-gradient(50rem 40rem at 0% 110%, rgba(200, 16, 46, 0.06), transparent 55%),
+    linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 2.5rem 2.5rem, 2.5rem 2.5rem;
+}
+
+/* Kolase dokumentasi — koordinat desktop mengikuti frame Figma 1501 × 520px. */
+.mosaic-grid {
+  position: relative;
+  width: min(1501px, calc(100vw - 3rem));
+  aspect-ratio: 1501 / 520;
+}
+.mosaic-card {
+  position: absolute;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  box-shadow: 8px 8px 4px rgba(0, 0, 0, 0.25), 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.mosaic-card img { object-fit: cover; }
+.mosaic-left { left: 0; top: 29.23%; width: 17.66%; height: 50.96%; }
+.mosaic-ruins { left: 20.39%; top: 9.62%; width: 17.66%; height: 30.77%; }
+.mosaic-medics { left: 20.39%; top: 48.08%; width: 17.66%; height: 50.96%; }
+.mosaic-main { left: 41.57%; top: 0; width: 17.66%; height: 100%; }
+.mosaic-tent { left: 61.96%; top: 8.27%; width: 17.66%; height: 50.96%; }
+.mosaic-building { left: 61.96%; top: 66.54%; width: 17.66%; height: 33.08%; }
+.mosaic-right { left: 82.35%; top: 29.23%; width: 17.66%; height: 50.96%; }
+
+@media (max-width: 639px) {
+  .mosaic-grid {
+    display: grid;
+    width: 100%;
+    aspect-ratio: auto;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 5.5rem);
+    gap: 0.7rem;
+  }
+  .mosaic-card { position: relative; inset: auto; width: auto; height: auto; }
+  .mosaic-left { grid-column: 1; grid-row: 1 / span 2; }
+  .mosaic-main { grid-column: 2; grid-row: 1 / span 3; }
+  .mosaic-right { grid-column: 3; grid-row: 2 / span 2; }
+  .mosaic-ruins { grid-column: 3; grid-row: 1; }
+  .mosaic-medics { grid-column: 1; grid-row: 3; }
+  .mosaic-tent, .mosaic-building { display: none; }
+}
+
+/* Kartu fitur landing — grid enam kartu dari desain SIGAP. */
+.feature-card {
+   min-height: 13.2rem;
+   border: 1px solid #f0f0f0;
+   border-radius: 1.15rem;
+   background: #fff;
+   padding: 1.3rem 1.5rem 1.55rem;
+   text-align: center;
+   box-shadow: 0 10px 15px rgba(15, 23, 42, 0.12);
+   transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+}
+.feature-card:focus-within {
+  outline: 3px solid rgba(200, 16, 46, 0.25);
+  outline-offset: 3px;
+}
+.feature-icon {
+   display: inline-flex;
+   width: 3.2rem;
+   height: 3.2rem;
+   align-items: center;
+   justify-content: center;
+   border: 1px solid #ededed;
+   border-radius: 999px;
+   color: #ed1b3b;
+   background: #fff;
+}
+.feature-icon svg { width: 1.45rem; height: 1.45rem; stroke-width: 2; }
+.feature-card h3 {
+   margin: 1rem 0 0;
+   color: #172033;
+   font-size: 0.95rem;
+   font-weight: 800;
+   line-height: 1.35;
+}
+.feature-card p {
+   margin: 0.55rem auto 0;
+   max-width: 18rem;
+   color: #4b5563;
+   font-size: 0.82rem;
+   line-height: 1.45;
+}
+
+@media (max-width: 639px) {
+  .feature-card { min-height: 12.5rem; }
+  .feature-card p { font-size: 0.86rem; }
+}
+
+/* Artikel landing: grid editorial empat kolom dari desain Figma. */
+.article-section { border-top: 1px solid #f1f1f1; }
+.article-heading { margin-bottom: 1.35rem !important; font-size: 2rem !important; line-height: 1.15; }
+.article-grid { column-gap: 2.35rem !important; row-gap: 2.5rem !important; }
+.article-image { border-radius: 0 !important; margin-bottom: 0.8rem !important; }
+.article-date { color: #858585; font-size: 0.72rem; line-height: 1.2; }
+.article-title { margin-bottom: 0.5rem !important; color: #252525; font-size: 0.82rem; line-height: 1.35; }
+.article-excerpt { color: #686868; font-size: 0.68rem; line-height: 1.45; }
+
+@media (max-width: 639px) {
+  .article-heading { font-size: 1.75rem !important; }
+  .article-image { aspect-ratio: 1.35 / 1; }
+  .article-title { font-size: 0.9rem; }
+  .article-excerpt { font-size: 0.76rem; }
+}
+
+.landing-footer {
+  position: relative;
+  margin-top: 6rem;
+  min-height: 19.5rem;
+  padding: 5.75rem max(3.5rem, calc((100% - 75rem) / 2)) 2rem;
+  border-radius: 2rem 2rem 0 0;
+  background: linear-gradient(115deg, #d20b32 0%, #a50024 55%, #650014 100%);
+  color: #fff;
+}
+.landing-footer-content {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+.landing-footer-message p,
+.landing-footer-about p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.landing-footer-about h2 {
+  margin: 0 0 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.landing-footer-socials {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+.landing-footer-socials a {
+  display: inline-flex;
+  width: 1.9rem;
+  height: 1.9rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #fff;
+  color: #c8102e;
+  font-size: 0.95rem;
+  transition: transform 180ms ease, background 180ms ease;
+}
+.landing-footer-socials a:hover { transform: translateY(-2px); background: #ffecef; }
+.landing-footer-form {
+  display: flex;
+  width: min(16rem, 100%);
+  height: 1.45rem;
+  margin-top: 2rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #fff;
+}
+.landing-footer-form input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  padding: 0 0.7rem;
+  color: #334155;
+  font-size: 0.55rem;
+  outline: 0;
+}
+.landing-footer-form button {
+  width: 3.8rem;
+  margin: 0.15rem;
+  border-radius: 999px;
+  background: #c8102e;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+}
+.landing-footer-copyright {
+  margin: 3.2rem 0 0;
+  text-align: right;
+  font-size: 0.65rem;
+}
+
+@media (max-width: 700px) {
+  .landing-footer { margin-top: 4rem; padding: 3.5rem 1.5rem 1.5rem; }
+  .landing-footer-content { grid-template-columns: 1fr; gap: 2.5rem; }
+  .landing-footer-copyright { margin-top: 2.5rem; text-align: left; }
+}
+
+/* Frame triage landing mengikuti komposisi Figma: preview kiri, copy kanan. */
+.system-frame {
+  width: 100%;
+  padding: 0.35rem;
+  background: #fff;
+}
+.system-frame > div { min-width: 0; }
+.system-copy { padding: 1.25rem 1.5rem 1.25rem 1rem; }
+.system-copy h1 { font-size: clamp(2rem, 3.2vw, 3rem); }
+.system-copy p { max-width: 35rem; font-size: 0.95rem; line-height: 1.55; }
+.system-frame .shadow-xl { box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12); }
+
+@media (max-width: 1023px) {
+  .system-copy { padding: 1rem; }
+}
+
+/* Risiko: panel kiri, dua kartu sejajar, CTA bawah — mengikuti Figma. */
+.risk-layout { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); grid-template-rows:1fr auto; gap:1.25rem 1.5rem; align-items:stretch; }
+.risk-headline, .risk-factors article {
+  position: relative;
+  background: linear-gradient(145deg, #ca143b 0%, #aa082b 55%, #7e0019 100%);
+  color: #fff;
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.risk-headline { grid-row:1 / span 2; min-height:27rem; border-radius:1.1rem; padding:clamp(2rem,4vw,4rem); }
+.risk-headline:hover {
+  transform: scale(1.02) translateY(-4px);
+  z-index: 10;
+  box-shadow: 0 20px 38px -10px rgba(170, 8, 43, 0.4), 0 8px 16px -4px rgba(0, 0, 0, 0.12);
+}
+.risk-kicker { display:none; }
+.risk-headline h2 { max-width:30rem; margin:0; font-size:clamp(2.1rem,3.7vw,3.65rem); font-weight:800; line-height:1.12; letter-spacing:-.045em; }
+.risk-factors { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.1rem; }
+.risk-factors article {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-height:17.5rem;
+  border-radius:1.05rem;
+  padding:clamp(2.5rem,4vw,4rem) clamp(1.25rem,2.2vw,2rem) clamp(1.5rem,2.5vw,2rem);
+}
+.risk-factors article:hover {
+  transform: scale(1.03) translateY(-4px);
+  z-index: 10;
+  box-shadow: 0 16px 32px -8px rgba(170, 8, 43, 0.35), 0 6px 12px -3px rgba(0, 0, 0, 0.1);
+}
+.risk-factors svg { display:none; }
+.risk-factors p { margin:0; line-height:1.22; display:flex; flex-direction:column; flex:1; justify-content:center; }
+.risk-factor-lead, .risk-factor-tail { display:block; font-size:1rem; line-height:1.35; }
+.risk-factor-lead { font-weight:800; min-height:4.1em; display:flex; align-items:flex-end; }
+.risk-factor-tail { font-size:.93rem; line-height:1.4; }
+.risk-factors strong { display:block; margin:1rem 0 .85rem; font-size:1.875rem; font-weight:900; line-height:1.01; letter-spacing:.01em; }
+@media (max-width:1024px) { .risk-factor-lead { font-size:.875rem; } .risk-factor-tail { font-size:.8rem; } .risk-factors strong { font-size:1.5rem; } }
+.risk-more {
+  position: relative;
+  grid-column:2;
+  display:flex;
+  width:100%;
+  min-height:4.7rem;
+  align-items:center;
+  justify-content:space-between;
+  border:3px solid #bd0c30;
+  border-radius:1.05rem;
+  padding:.55rem .7rem .55rem 1.5rem;
+  color:#bd0c30;
+  font-size:clamp(1rem,1.5vw,1.35rem);
+  font-weight:800;
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1), background 180ms ease, color 180ms ease;
+  will-change: transform;
+}
+.risk-more svg { width:3rem; height:3rem; padding:.75rem; border-radius:50%; background:#a90429; color:#fff; transform:rotate(-45deg); transition: transform 200ms ease, background 180ms ease, color 180ms ease; }
+.risk-more:hover {
+  background:#bd0c30;
+  color:#fff;
+  transform: scale(1.02) translateY(-3px);
+  z-index: 10;
+  box-shadow: 0 12px 28px -6px rgba(189, 12, 48, 0.35);
+}
+.risk-more:hover svg {
+  background:#fff;
+  color:#bd0c30;
+  transform: rotate(0deg);
+}
+@media (max-width:768px) { .risk-layout { grid-template-columns:1fr; } .risk-headline { grid-row:auto; min-height:15rem; padding:2rem 1.5rem; } .risk-factors { grid-template-columns:1fr; } .risk-factors article { min-height:auto; } .risk-more { grid-column:auto; } }
+/* Dampak Bencana: foto full-bleed, panel putih inset, kartu overlap ke foto — spacing mengikuti Figma. */
+.impact-stage {
+  position: relative;
+  width: 100%;
+  min-height: 40rem;
+  padding: 0 0 8.5rem;
+  overflow: hidden;
+}
+.impact-photo {
+  object-fit: cover;
+  object-position: center 55%;
+  z-index: 0;
+}
+.impact-panel {
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 4.5rem);
+  margin: 0 auto;
+  padding: 2rem 4.25rem 0;
+  border-radius: 0 0 1.5rem 1.5rem;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+.impact-copy {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2.5rem;
+  padding: 0 0.35rem;
+}
+.impact-copy h2 {
+  margin: 0;
+  flex: 0 0 auto;
+  color: #c8102e;
+  font-size: clamp(2.6rem, 3.8vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+}
+.impact-copy p {
+  max-width: 34rem;
+  margin: 0.35rem 0 0 auto;
+  color: #1f1f1f;
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  line-height: 1.6;
+  text-align: right;
+}
+.impact-cards {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.15rem;
+  margin: 0;
+  transform: translateY(12%);
+}
+.impact-card {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 14rem;
+  border: 1.5px solid transparent;
+  border-radius: 0.85rem;
+  background: #fff;
+  padding: 2.35rem 2rem 2.1rem;
+  color: #334155;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), border-color 250ms ease, box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+  cursor: pointer;
+}
+.impact-card.is-active {
+  border-color: transparent;
+}
+.impact-card:hover {
+  border-color: #c8102e;
+  transform: translateY(-10px);
+  box-shadow: 0 18px 36px -6px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(200, 16, 46, 0.16);
+  z-index: 10;
+}
+.impact-card b {
+  color: #151515;
+  font-size: clamp(1rem, 1.25vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  margin: 0 0 1.4rem;
+  display: block;
+}
+.impact-card small {
+  color: #4b5563;
+  font-size: clamp(0.78rem, 0.95vw, 0.95rem);
+  line-height: 1.6;
+  text-align: left;
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .impact-stage {
+    padding-bottom: 3rem;
+  }
+  .impact-panel {
+    width: min(100% - 2rem, 71rem);
+    padding: 2.5rem 1.75rem 0;
+  }
+  .impact-copy {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 0;
+  }
+  .impact-copy p {
+    text-align: left;
+    max-width: 100%;
+    margin: 0;
+  }
+  .impact-cards {
+    grid-template-columns: 1fr;
+    gap: 1.35rem;
+    margin-top: 2rem;
+    transform: translateY(1.5rem);
+  }
+  .impact-card {
+    min-height: 0;
+    padding: 1.85rem 1.65rem 2rem;
+  }
+}
+
+/* ═══ Peta Lintas-Posko — polish visual ═══ */
+.leaflet-container {
+  font-family: inherit;
+  background: #eef2f7;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  padding: 2px;
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.45;
+}
+.leaflet-popup-tip {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+.leaflet-control-zoom a {
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  color: #334155 !important;
+}
+
+/* Cluster marker — tema PMI */
+.peta-cluster {
+  background: rgba(200, 16, 46, 0.88);
+  color: #fff;
+  border: 2.5px solid #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  width: 42px;
+  height: 42px;
+  box-shadow: 0 3px 12px rgba(200, 16, 46, 0.4);
+}
+
+/* Pin manual (drop pin) — animasi pulsing */
+@keyframes peta-pin-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0.45); }
+  70% { box-shadow: 0 0 0 14px rgba(200, 16, 46, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0); }
+}
+.peta-pin {
+  animation: peta-pin-pulse 1.6s ease-out infinite;
+}
+
+/* Popup kebutuhan — baris rapi */
+.peta-pop-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.peta-pop-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 1px;
+}
+.peta-pop-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.peta-pop-row:last-child {
+  border-bottom: none;
+}
+.peta-pop-badge {
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+}
