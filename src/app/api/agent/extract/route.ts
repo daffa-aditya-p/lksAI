@@ -1,0 +1,142 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { auth } from "@/auth";
+import { ekstrakProfil, ekstrakMultiProfil } from "@/lib/gemini";
+import { hitungSkor } from "@/lib/scoring";
+import { runZeroShotExtraction } from "@/lib/gliner";
+import type { ProfilKerentanan, ProvenanceMap } from "@/lib/types";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const bodySchema = z.object({
+  teks: z.string().min(3, "Teks terlalu pendek").max(8000),
+  mode: z.enum(["auto", "deberta", "llm"]).default("auto"),
+  intakeMode: z.enum(["single", "multi"]).default("single"),
+});
+
+function createFullProvenance(
+  profil: Partial<ProfilKerentanan>,
+  source: "neural",
+  sourceDetail: string,
+  baseConfidence: number,
+  fieldConfidenceOverrides?: Record<string, number>
+): ProvenanceMap {
+  const prov: any = {};
+  const fields = ["namaKK", "usiaKK", "anggotaKeluarga", "kondisiMedisKritis", "obatTersedia", "mobilitas", "asalLokasi", "instansiRujukan"];
+  
+  for (const f of fields) {
+    prov[f] = {
+      value: (profil as any)[f] || null,
+      source,
+      sourceDetail,
+      confidence: fieldConfidenceOverrides?.[f] ?? baseConfidence,
+    };
+  }
+  return prov as ProvenanceMap;
+}
+
+export async function POST(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ ok: false, error: "Tidak terautentikasi" }, { status: 401 });
+    }
+
+    const json = await req.json().catch(() => null);
+    const parsed = bodySchema.safeParse(json);
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message ?? "Input tidak valid" }, { status: 400 });
+    }
+
+    const { teks, mode, intakeMode } = parsed.data;
+
+    // ==========================================
+    // MULTI-KELUARGA (BATCH EXTRACTION) MODE
+    // ==========================================
+    if (intakeMode === "multi") {
+      const multiProfils = await ekstrakMultiProfil(teks);
+
+      const items = multiProfils.map((p, idx) => {
+        const profil: ProfilKerentanan = {
+          ...p,
+          kondisiMedisKritis: p.kondisiMedisKritis || [],
+          anggotaKeluarga: p.anggotaKeluarga || [],
+          instansiRujukan: p.instansiRujukan || (p.kondisiMedisKritis && p.kondisiMedisKritis.length > 0 ? "DINAS_KESEHATAN" : "DINAS_SOSIAL"),
+        };
+        profil.provenance = createFullProvenance(profil, "neural", `llm-multi-entity-#${idx + 1}`, 0.95);
+        const skor = hitungSkor(profil);
+        return { profil, skor };
+      });
+
+      return NextResponse.json({
+        ok: true,
+        intakeMode: "multi",
+        items,
+        count: items.length,
+        ensembleAgreement: 0.95,
+      });
+    }
+
+    // ==========================================
+    // SINGLE-KELUARGA MODE
+    // ==========================================
+    let finalProfil: Partial<ProfilKerentanan> = {};
+    let finalProvenance: ProvenanceMap | undefined = undefined;
+    let uncertainFields: string[] = [];
+
+    if (mode === "llm" || mode === "auto") {
+      // MODE 1 & 3: LLM Murni (Qwen Groq -> Gemini Flash -> Gemini Lite)
+      const neural = await ekstrakProfil(teks);
+      finalProfil = { ...neural, agentThought: neural.agentThought || "LLM: Ekstraksi komprehensif menggunakan kecerdasan LLM murni." };
+      finalProvenance = neural.provenance || createFullProvenance(finalProfil, "neural", "llm-qwen-groq", 0.95);
+    } 
+    else if (mode === "deberta") {
+      // MODE 2: GLiNER murni (DeBERTa backbone) dengan fallback otomatis ke LLM jika service sleep/down
+      try {
+        const glinerResult = await runZeroShotExtraction(teks);
+        finalProfil = { ...glinerResult.profil, agentThought: "GLiNER: Zero-Shot NER dieksekusi via Hugging Face Spaces." };
+        finalProvenance = createFullProvenance(finalProfil, "neural", "gliner-onnx", 0.8, glinerResult.fieldConfidence);
+        uncertainFields = Object.keys(glinerResult.fieldConfidence).filter(k => glinerResult.fieldConfidence[k] < 0.7);
+      } catch (glinerErr) {
+        console.warn("[/api/agent/extract] GLiNER tidak tersedia/timeout, fallback ke LLM:", glinerErr);
+        const neural = await ekstrakProfil(teks);
+        finalProfil = {
+          ...neural,
+          agentThought: `Fallback LLM (GLiNER service sedang sleep/timeout): ${neural.agentThought || "Ekstraksi dialihkan ke model LLM."}`,
+        };
+        finalProvenance = neural.provenance || createFullProvenance(finalProfil, "neural", "fallback-llm", 0.9);
+      }
+    }
+
+    finalProfil.provenance = finalProvenance;
+    
+    // Pastikan array tidak undefined
+    if (!finalProfil.kondisiMedisKritis) finalProfil.kondisiMedisKritis = [];
+    if (!finalProfil.anggotaKeluarga) finalProfil.anggotaKeluarga = [];
+    
+    // Pastikan instansiRujukan tidak undefined (karena GLiNER tidak mengekstraknya)
+    if (!finalProfil.instansiRujukan) {
+      finalProfil.instansiRujukan = finalProfil.kondisiMedisKritis.length > 0 ? "DINAS_KESEHATAN" : "DINAS_SOSIAL";
+    }
+    
+    const skor = hitungSkor(finalProfil as ProfilKerentanan);
+
+    return NextResponse.json({
+      ok: true,
+      intakeMode: "single",
+      profil: finalProfil,
+      skor,
+      isBypassed: false,
+      consistencyWarnings: [],
+      ensembleAgreement: mode === "deberta" ? 0.7 : 0.95,
+      uncertainFields,
+    });
+  } catch (err) {
+    console.error("[/api/agent/extract] error:", err);
+    return NextResponse.json(
+      { ok: false, error: (err as Error)?.message || "Gagal memproses dengan AI. Coba lagi, atau isi data manual di Kartu Konfirmasi." },
+      { status: 500 }
+    );
+  }
+}
