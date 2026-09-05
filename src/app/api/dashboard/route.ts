@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { hitungAgregat } from "@/lib/aggregate";
+import { hitungAgregatDariKasus } from "@/lib/aggregate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,14 +19,12 @@ export async function GET() {
       return NextResponse.json({ ok: false, error: "Akses ditolak" }, { status: 403 });
     }
 
-    const [agregat, kasus] = await Promise.all([
-      hitungAgregat(),
-      prisma.kasus.findMany({
-        where: { isSpam: false },
-        orderBy: [{ levelPrioritas: "desc" }, { createdAt: "desc" }],
-        take: 500,
-      }),
-    ]);
+    const kasus = await prisma.kasus.findMany({
+      where: { isSpam: false },
+      orderBy: [{ levelPrioritas: "desc" }, { createdAt: "desc" }],
+      take: 500,
+    });
+    const agregat = hitungAgregatDariKasus(kasus);
 
     const merahBelumVerifikasi = kasus.filter(
       (k) => k.levelPrioritas === "MERAH" && !k.statusVerifikasiMedis

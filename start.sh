@@ -27,10 +27,14 @@ else
 fi
 echo ""
 
-# 2. Check .env
-echo "[2/5] Memeriksa file konfigurasi (.env)..."
+# 2. Check & Decrypt .env
+echo "[2/5] Memeriksa & menginisialisasi environment (.env)..."
 if [ ! -f ".env" ]; then
-    if [ -f ".env.example" ]; then
+    if [ -f ".env.enc" ]; then
+        echo "[i] Mendekripsi file environment dari vault (.env.enc)..."
+        node scripts/vault.js decrypt
+        echo "[✓] Nilai environment berhasil didekripsi dan siap digunakan."
+    elif [ -f ".env.example" ]; then
         echo "[i] Membuat .env dari .env.example..."
         cp .env.example .env
         RANDOM_SECRET=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 32)
@@ -38,7 +42,7 @@ if [ ! -f ".env" ]; then
         echo "[✓] File .env berhasil dibuat dengan AUTH_SECRET otomatis."
     fi
 else
-    echo "[✓] File .env siap digunakan."
+    echo "[✓] File .env aktif dan siap digunakan."
 fi
 echo ""
 

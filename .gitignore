@@ -14,6 +14,7 @@ next-env.d.ts
 # misc
 .DS_Store
 *.pem
+.sigap.pid
 
 # debug
 npm-debug.log*
@@ -24,6 +25,7 @@ yarn-error.log*
 .env
 .env*
 !.env.example
+!.env.enc
 .env*.local
 .env.local
 

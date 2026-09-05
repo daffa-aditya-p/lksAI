@@ -7,18 +7,19 @@ import type { AnggotaKeluarga } from "@/lib/types";
  * Dipakai dashboard koordinator & generator laporan harian.
  * Tidak memuat nama asli -> aman untuk laporan agregat (mitigasi privasi).
  */
-export async function hitungAgregat(): Promise<AgregatPosko> {
-  const rows = await prisma.kasus.findMany({
-    where: { isSpam: false },
-    select: {
-      levelPrioritas: true,
-      usiaKK: true,
-      anggotaKeluarga: true,
-      obatTersedia: true,
-      instansiRujukan: true,
-    },
-  });
+export type KasusAgregatInput = {
+  levelPrioritas: string;
+  usiaKK?: number | null;
+  anggotaKeluarga?: unknown;
+  obatTersedia?: boolean | null;
+  instansiRujukan?: string | null;
+};
 
+/**
+ * Hitung agregat posko secara in-memory dari kumpulan baris kasus.
+ * Menghemat round-trip database jika kasus sudah di-fetch.
+ */
+export function hitungAgregatDariKasus(rows: KasusAgregatInput[]): AgregatPosko {
   const agg: AgregatPosko = {
     totalJiwa: 0,
     totalKK: rows.length,
@@ -60,4 +61,23 @@ export async function hitungAgregat(): Promise<AgregatPosko> {
   }
 
   return agg;
+}
+
+/**
+ * Hitung agregat posko dari seluruh kasus non-spam terverifikasi langsung dari database.
+ * Dipakai generator laporan harian.
+ */
+export async function hitungAgregat(): Promise<AgregatPosko> {
+  const rows = await prisma.kasus.findMany({
+    where: { isSpam: false },
+    select: {
+      levelPrioritas: true,
+      usiaKK: true,
+      anggotaKeluarga: true,
+      obatTersedia: true,
+      instansiRujukan: true,
+    },
+  });
+
+  return hitungAgregatDariKasus(rows);
 }

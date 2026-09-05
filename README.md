@@ -37,7 +37,7 @@
 |------|-------|--------|
 | **Faith Irhab Nabil** | Ketua Tim, Full Stack Developer & AI Engineer | [@faith-prog](https://github.com/faith-prog) |
 | **Daffa Aditya Pratama** | Full Stack Developer, AI Researcher & Engineer | [@daffa-aditya-p](https://github.com/daffa-aditya-p) |
-| **Muhammad Rasya Wantoro** | UI/UX Specialist & Frontend Developer | [@rasyawantoro](https://github.com/rasyawantoro) |
+| **Muhammad Rasya Putra Wantoro** | UI/UX Specialist & Frontend Developer | [@rasyawantoro](https://github.com/rasyawantoro) |
 
 ---
 
@@ -77,7 +77,7 @@ Keunikan SIGAP AI terletak pada integrasi beberapa proses penanganan korban dala
 
 | Fitur | Deskripsi | Keunggulan |
 |-------|-----------|------------|
-| **AI Triage & Deterministic Scoring** | Ekstraksi otomatis catatan wawancara bebas via LLM (Gemini 2.5 & Groq Qwen) + GLiNER, dilanjutkan kalkulasi skor kerentanan deterministik berstandar Sphere Project & IFRC. | Memisahkan ekstraksi NLP dari kalkulasi skor, menjamin skor 100% konsisten, adil, transparan (explainable AI), dan tidak berhalusinasi. |
+| **AI Triage & Deterministic Scoring** | Ekstraksi otomatis catatan wawancara bebas via LLM (Groq qwen/qwen3.6-27b & Google gemini-3.6-flash / gemini-3.5-flash-lite) + GLiNER, dilanjutkan kalkulasi skor kerentanan deterministik berstandar Sphere Project & IFRC. | Memisahkan ekstraksi NLP dari kalkulasi skor, menjamin skor 100% konsisten, adil, transparan (explainable AI), dan tidak berhalusinasi. |
 | **Digital Check-In & Secure QR** | Portal Lapor Mandiri bagi korban untuk mengisi data awal posko, menghasilkan QR Code terenkripsi tanda tangan digital HMAC-SHA256 dengan masa kedaluwarsa 24 jam. | Mencegah antrean panjang di gerbang posko, kebal manipulasi data (anti-tampering), dan memvalidasi radius posko via geofencing. |
 | **Offline-First PWA & Auto-Sync** | Kemampuan operasional penuh saat jaringan seluler terputus total menggunakan Progressive Web App (PWA), Service Worker, dan IndexedDB lokal. | Relawan tetap dapat melakukan intake data di lokasi bencana terisolasi; data otomatis tersinkronisasi saat sinyal pulih tanpa risiko duplikasi. |
 | **Peta Kebutuhan Posko & GIS 3-Layer** | Visualisasi spasial interaktif berbasis Leaflet & OpenStreetMap dengan kontrol privasi 3 lapis (Publik, Instansi Terverifikasi, dan Admin Posko). | Memetakan titik posko, agregat logistik darurat, dan persebaran korban rentan secara real-time untuk mempercepat penyaluran bantuan BNPB/PMI. |
@@ -101,14 +101,46 @@ Keunikan SIGAP AI terletak pada integrasi beberapa proses penanganan korban dala
 ### Screenshot Aplikasi
 
 <div align="center">
-  <img src="public/Berita Images/image (3).png" alt="Landing Page SIGAP AI" width="800"/>
-  <p><em>Landing Page - Halaman depan informatif dengan integrasi berita & panduan bencana</em></p>
-  
-  <img src="public/Berita Images/image (4).png" alt="Dashboard Triase Koordinator" width="800"/>
-  <p><em>Dashboard Triase - Monitoring sebaran korban Merah, Kuning, Hijau & verifikasi medis</em></p>
-  
-  <img src="public/Berita Images/image (5).png" alt="Intake & Lapor Cepat AI" width="800"/>
-  <p><em>Intake Relawan - Ekstraksi otomatis catatan wawancara pengungsi bertenaga AI</em></p>
+
+  <h4>1. Landing Page & Edukasi Kesiapsiagaan</h4>
+  <img src="public/Hero-landingpage.jpg" alt="Landing Page SIGAP AI" width="800"/>
+  <p><em>Halaman beranda utama dengan informasi tanggap darurat, alur evakuasi, dan navigasi cepat posko.</em></p>
+  <br/>
+
+  <h4>2. Dashboard Triase Koordinator Posko</h4>
+  <img src="public/Dashboard.jpg" alt="Dashboard Triase Koordinator" width="800"/>
+  <p><em>Monitoring real-time sebaran korban Merah, Kuning, Hijau, statistik kerentanan, dan verifikasi medis darurat.</em></p>
+  <br/>
+
+  <h4>3. AI Intake Relawan & Ekstraksi Cerdas Catatan Lapangan</h4>
+  <img src="public/Intake.jpg" alt="AI Intake Relawan" width="800"/>
+  <p><em>Form pencatatan wawancara pengungsi dengan ekstraksi entitas otomatis berbasis AI dan dukungan mode offline.</em></p>
+  <br/>
+
+  <h4>4. Peta Geospasial Interaktif & Persebaran Posko</h4>
+  <img src="public/PetaPosko.jpg" alt="Peta Interaktif Posko" width="800"/>
+  <p><em>Visualisasi GIS titik posko pengungsian, perimeter keselamatan, dan pemetaan kebutuhan logistik instansi.</em></p>
+  <br/>
+
+  <h4>5. Lapor Mandiri Pengungsi & Digital Check-In QR</h4>
+  <img src="public/LaporMandiri.jpg" alt="Lapor Mandiri dan QR Check-In" width="800"/>
+  <p><em>Pendaftaran mandiri oleh warga dengan pembuatan QR Code terverifikasi tanda tangan kriptografi HMAC-SHA256.</em></p>
+  <br/>
+
+  <h4>6. Manajemen Rujukan Medis & Koordinasi Lintas Instansi</h4>
+  <img src="public/rujukan.jpg" alt="Sistem Rujukan Medis" width="800"/>
+  <p><em>Pemantauan rujukan korban luka berat ke Dinkes, Dinsos, dan BPBD dengan fasilitas ekspor CSV/XLSX.</em></p>
+  <br/>
+
+  <h4>7. Halaman Autentikasi & Manajemen Akses Pengguna</h4>
+  <img src="public/Login.jpg" alt="Halaman Login SIGAP AI" width="800"/>
+  <p><em>Sistem masuk aman multi-peran (Koordinator/Admin & Relawan Lapangan) terproteksi NextAuth.js.</em></p>
+  <br/>
+
+  <h4>8. Portal Artikel & Edukasi Tanggap Bencana</h4>
+  <img src="public/Artikel.jpg" alt="Portal Artikel dan Berita" width="800"/>
+  <p><em>Pusat informasi berita terkini, SOP keselamatan, dan panduan pertolongan pertama PMI bagi masyarakat.</em></p>
+
 </div>
 
 ---
@@ -141,11 +173,12 @@ Export Engine: ExcelJS & Sanitized CSV Stream Exporter
 
 #### AI & Natural Language Processing
 ```text
-Primary LLM  : Google Gemini 2.5 Flash / 2.0 Flash Lite (Google AI Studio)
-Fallback LLM : Groq Qwen-2.5-32b-IT (High-Speed Inference)
-NER Engine   : GLiNER (Generalist and Lightweight Named Entity Recognition)
-Rule Engine  : Deterministic Vulnerability Algorithm (Sphere Project / IFRC Guidelines)
-NLP Helpers  : Levenshtein Distance Typo Tolerant (Fuzzy Slang Dictionary Indonesia)
+Priority 1 LLM : Groq qwen/qwen3.6-27b (High-Speed Inference via Groq API)
+Priority 2 LLM : Google gemini-3.6-flash (Google GenAI SDK - Deep Reasoning)
+Priority 3 LLM : Google gemini-3.5-flash-lite (Google GenAI SDK - Fallback & Klasifikasi Cepat)
+NER Engine     : GLiNER (Generalist and Lightweight Named Entity Recognition)
+Rule Engine    : Deterministic Vulnerability Algorithm (Sphere Project / IFRC Guidelines)
+NLP Helpers    : Levenshtein Distance Typo Tolerant (Fuzzy Slang Dictionary Indonesia)
 ```
 
 ### Alasan Pemilihan Teknologi
@@ -154,7 +187,7 @@ NLP Helpers  : Levenshtein Distance Typo Tolerant (Fuzzy Slang Dictionary Indone
 |-----------|------------------|
 | **Artificial Intelligence (AI)** | Dipilih untuk membantu menganalisis data korban dan memberikan rekomendasi awal terkait tingkat kerentanan serta prioritas triage secara cepat. AI dapat membantu petugas mengolah banyak data dalam waktu singkat sehingga proses penentuan prioritas menjadi lebih efisien. |
 | **Machine Learning (ML) & GLiNER** | Digunakan sebagai teknologi pendukung dalam proses ekstraksi entitas bernama (NER) dan klasifikasi berdasarkan parameter medis, usia, serta kondisi kerentanan korban. ML mengenali pola bahasa alami penutur Indonesia sehingga menghasilkan data terstruktur. |
-| **Generative AI / Multi-LLM Fallback** | Mengombinasikan Google Gemini dan Groq Qwen untuk ketahanan sistem tinggi. Jika kuota atau jaringan salah satu provider terhambat, sistem secara otomatis beralih dalam hitungan milidetik tanpa interupsi pengguna. |
+| **Generative AI / Multi-LLM Fallback** | Mengombinasikan Groq qwen/qwen3.6-27b dengan Google gemini-3.6-flash dan gemini-3.5-flash-lite untuk ketahanan sistem tinggi. Jika kuota atau jaringan salah satu provider terhambat, sistem secara otomatis beralih dalam hitungan milidetik tanpa interupsi pengguna. |
 | **QR Code & Digital Check-In** | Dipilih karena mudah digunakan, cepat dipindai lewat kamera smartphone, dan memangkas waktu pendaftaran manual korban di posko penampungan darurat. |
 | **HMAC-SHA256 Signatures** | Digunakan untuk meningkatkan keamanan data pada QR Code dengan memastikan payload tidak dapat dipalsukan, ditiru, atau diubah parameternya oleh pihak tidak bertanggung jawab. |
 | **PostgreSQL & Prisma ORM** | Menyimpan dan mengelola data relasional korban, posko, log audit, dan kebutuhan logistik secara terpusat dengan integritas skema ketat serta performa query tinggi. |
@@ -210,8 +243,9 @@ flowchart TD
     end
 
     subgraph AICloud["Pipeline Kecerdasan Buatan (Hybrid AI)"]
-        Gemini["Primary: Google Gemini 2.5 Flash"]
-        Groq["Fallback: Groq Qwen-2.5-32b"]
+        Groq["Priority 1: Groq qwen/qwen3.6-27b"]
+        Gemini["Fallback 1: Google gemini-3.6-flash"]
+        GeminiLite["Fallback 2: Google gemini-3.5-flash-lite"]
         GLiNER["HF Space: GLiNER Entity Extraction"]
     end
 
