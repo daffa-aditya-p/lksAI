@@ -89,7 +89,11 @@ export default async function Home() {
         </header>
 
         <div className="sg-hero-photo" aria-hidden="true">
-          <Image src="/images/landing/hero-ruins.jpg" alt="" fill priority sizes="62vw" />
+          <Image src="/images/landing/hero-ruins.jpg" alt="" fill priority sizes="(max-width: 900px) 100vw, 62vw" />
+        </div>
+
+        <div className="sg-hero-kabut" aria-hidden="true">
+          <Image src="/images/landing/kabut.png" alt="" fill priority sizes="(max-width: 900px) 100vw, 60vw" />
         </div>
 
         <div className="sg-wrap sg-hero-body">
