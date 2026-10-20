@@ -95,16 +95,16 @@
 }
 .sg-hero-kabut {
   position: absolute;
-  top: -5%;
-  left: 18%;
-  width: 64%;
-  height: 110%;
+  top: 0;
+  left: 0;
+  width: clamp(540px, 68vw, 1050px);
+  height: 100%;
   z-index: 2;
   pointer-events: none;
 }
 .sg-hero-kabut img {
   object-fit: fill;
-  object-position: center;
+  object-position: left center;
 }
 .sg-hero-body { position: relative; z-index: 5; padding-top: 190px; padding-bottom: 80px; }
 .sg-hero h1 { font-size: clamp(40px, 5.2vw, 58px); line-height: 1.04; font-weight: 700; letter-spacing: -.02em; }
@@ -138,13 +138,30 @@
 .sg-about h2 { margin-top: 14px; font-size: clamp(30px, 3.8vw, 40px); line-height: 1.12; font-weight: 600; letter-spacing: -.01em; }
 .sg-about h2 em { font-style: normal; color: var(--teal); }
 .sg-about p { margin-top: 16px; max-width: 420px; font-size: 12.5px; line-height: 1.65; color: var(--ink-soft); }
-.sg-about-visual { position: relative; height: 290px; }
-.sg-about-visual .circle {
-  position: absolute; width: 190px; height: 190px; border-radius: 50%;
-  background: #9fdde4; top: 0; left: 20%;
+.sg-about-visual {
+  position: relative;
+  height: 330px;
+  width: 100%;
 }
-.sg-about-visual .photo { position: absolute; inset: 70px 0 0 8%; }
-.sg-about-visual .photo img { object-fit: cover; object-position: center 70%; border-radius: 4px; }
+.sg-about-visual .circle {
+  position: absolute;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: #9fdde4;
+  top: 10px;
+  left: 14%;
+  z-index: 1;
+}
+.sg-about-visual .photo {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.sg-about-visual .photo img {
+  object-fit: contain;
+  object-position: center bottom;
+}
 
 /* ---------- Fitur ---------- */
 .sg-feat { padding: 30px 0 70px; text-align: center; }
@@ -280,12 +297,33 @@
   .sg-nav-links { gap: 14px; font-size: 11.5px; }
   .sg-nav-links .hide-md { display: none; }
   .sg-hero-photo { left: 0; opacity: .35; }
-  .sg-hero-kabut { left: -5%; width: 110%; opacity: .65; }
+  .sg-hero-kabut {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: .75;
+  }
+  .sg-hero-kabut img {
+    object-fit: cover;
+    object-position: left top;
+  }
   .sg-hero-body { padding-top: 150px; }
   .sg-search { grid-template-columns: 1fr 1fr; padding: 12px; gap: 10px; }
   .sg-field + .sg-field { border-left: 0; padding-left: 0; }
   .sg-search .sg-btn-orange { grid-column: 1 / -1; }
   .sg-about-grid, .sg-feat-grid, .sg-access-grid, .sg-footer-grid { grid-template-columns: 1fr; }
+  .sg-about-visual {
+    height: 280px;
+    width: min(440px, 100%);
+    margin: 0 auto;
+  }
+  .sg-about-visual .circle {
+    width: 190px;
+    height: 190px;
+    top: 5px;
+    left: 10%;
+  }
   .sg-feat-photo { margin-inline: auto; }
   .sg-steps, .sg-news-grid { grid-template-columns: repeat(2, 1fr); }
   .sg-faq-cols { grid-template-columns: 1fr; }
@@ -294,6 +332,15 @@
   .sg-copy { text-align: left; }
 }
 @media (max-width: 560px) {
+  .sg-about-visual {
+    height: 220px;
+  }
+  .sg-about-visual .circle {
+    width: 150px;
+    height: 150px;
+    top: 0;
+    left: 6%;
+  }
   .sg-feat-cards { grid-template-columns: 1fr; }
   .sg-nav-links a:not(.sg-btn-orange):not(.keep) { display: none; }
   .sg-map { min-height: 240px; }

@@ -145,13 +145,13 @@ export default async function Home() {
               Satu platform untuk<br />saling terhubung<br />dan <em>membantu.</em>
             </h2>
             <p>
-              {BRAND} hadir untuk menghubungkan masyarakat, relawan, posko, dan layanan bantuan dalam satu platform. Dengan informasi yang lebih terarah, bantuan dapat dialokasikan dan dikoordinasikan dengan lebih cepat.
+              {BRAND} hadir untuk menghubungkan masyarakat, relawan, posko, dan layanan bantuan dalam satu platform. Dengan informasi yang lebih terarah, bantuan dapat diakses dan dikoordinasikan dengan lebih cepat.
             </p>
           </div>
           <div className="sg-about-visual">
             <span className="circle" aria-hidden="true" />
             <div className="photo">
-              <Image src="/images/landing/volunteers-group.jpg" alt="Relawan saling merangkul bersama" fill sizes="(max-width: 900px) 90vw, 440px" />
+              <Image src="/images/landing/volunteers-group.png" alt="Relawan saling merangkul bersama" fill sizes="(max-width: 900px) 90vw, 480px" priority />
             </div>
           </div>
         </div>
