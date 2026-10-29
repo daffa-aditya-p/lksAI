@@ -45,14 +45,11 @@ export default function GoogleMapLeaflet({
         attributionControl: false,
       });
 
-      // Layer peta CartoDB Positron bergaya Google Maps yang bersih dan elegan
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        {
-          maxZoom: 19,
-          subdomains: "abcd",
-        }
-      ).addTo(map);
+      // Layer peta OpenStreetMap standar konsisten dengan seluruh sistem SATU AI (100% Free & Open Source)
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
 
       const markersGroup = L.layerGroup().addTo(map);
       markersLayerRef.current = markersGroup;
@@ -173,7 +170,7 @@ export default function GoogleMapLeaflet({
     });
   }, [selectedPosko, centerTrigger]);
 
-  // Render Rute Navigasi Google Maps Style Polyline
+  // Render Rute Navigasi (OSRM Real Road Route dengan Fallback Waypoint)
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -183,40 +180,69 @@ export default function GoogleMapLeaflet({
     }
 
     if (activeRoute) {
-      // Simulasikan rute berbelok realistis antara titik user dan posko tujuan
+      let isMounted = true;
       const startLat = userLocation.lat;
       const startLng = userLocation.lng;
       const endLat = activeRoute.lat;
       const endLng = activeRoute.lng;
 
-      // Titik tengah berbelok realistis mengikuti grid jalan kota
+      // Titik tengah berbelok realistis mengikuti grid jalan kota (fallback instan)
       const midLat = startLat + (endLat - startLat) * 0.55;
       const midLng = startLng + (endLng - startLng) * 0.45;
 
-      const routePoints: [number, number][] = [
+      const fallbackPoints: [number, number][] = [
         [startLat, startLng],
         [midLat, startLng],
         [midLat, midLng],
         [endLat, endLng],
       ];
 
-      // Garis rute utama biru Google Maps
-      const polyline = L.polyline(routePoints, {
-        color: "#007AFF",
-        weight: 6,
-        opacity: 0.92,
-        lineJoin: "round",
-        lineCap: "round",
-      });
+      const drawRoute = (coords: [number, number][]) => {
+        if (!mapRef.current || !isMounted) return;
+        if (routePolylineRef.current) {
+          mapRef.current.removeLayer(routePolylineRef.current);
+        }
 
-      polyline.addTo(mapRef.current);
-      routePolylineRef.current = polyline;
+        const polyline = L.polyline(coords, {
+          color: "#007AFF",
+          weight: 6,
+          opacity: 0.92,
+          lineJoin: "round",
+          lineCap: "round",
+        });
 
-      // Zoom dan sesuaikan bounds agar seluruh rute terlihat
-      mapRef.current.fitBounds(polyline.getBounds(), {
-        padding: [80, 80],
-        maxZoom: 16,
-      });
+        polyline.addTo(mapRef.current);
+        routePolylineRef.current = polyline;
+
+        mapRef.current.fitBounds(polyline.getBounds(), {
+          padding: [80, 80],
+          maxZoom: 16,
+        });
+      };
+
+      // Tampilkan rute fallback secara instan
+      drawRoute(fallbackPoints);
+
+      // Ambil rute jalan raya sebenarnya dari OSRM OpenStreetMap jika terhubung jaringan
+      fetch(
+        `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.routes?.[0]?.geometry?.coordinates && isMounted) {
+            const osrmPoints: [number, number][] = data.routes[0].geometry.coordinates.map(
+              (pt: [number, number]) => [pt[1], pt[0]]
+            );
+            drawRoute(osrmPoints);
+          }
+        })
+        .catch(() => {
+          // Tetap gunakan rute fallback yang sudah tergambar
+        });
+
+      return () => {
+        isMounted = false;
+      };
     }
   }, [activeRoute, userLocation]);
 
