@@ -33,50 +33,50 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Tidak terautentikasi" }, { status: 401 });
     }
 
-    const json = await req.json().catch(() => null);
-    const parsed = bodySchema.safeParse(json);
-    if (!parsed.success || parsed.data.items.length === 0) {
-      return NextResponse.json({ ok: false, error: "Body tidak valid" }, { status: 400 });
+    if (session.user.role !== "RELAWAN" && session.user.role !== "ADMIN") {
+      return NextResponse.json({ ok: false, error: "Akses ditolak: Hanya Relawan atau Admin yang dapat menyinkronkan data intake." }, { status: 403 });
     }
 
-    const saved: { id: string; kodeUnik: string }[] = [];
-    const failed: { id: string; error: string }[] = [];
+    const json = await req.json().catch(() => null);
+    const parsed = bodySchema.safeParse(json);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { ok: false, error: parsed.error.issues[0]?.message ?? "Format payload tidak valid" },
+        { status: 400 }
+      );
+    }
 
-    // Proses berurutan agar kode unik & skor konsisten; satu item gagal
-    // tidak menggagalkan item lain.
+    const saved: Array<{ id: string; kodeUnik: string }> = [];
+    const failed: Array<{ id: string; error: string }> = [];
+
     for (const item of parsed.data.items) {
-      try {
-        const kasus = konfirmasiSchema.parse({
-          ...(item.kasus as object),
-          clientSyncId: item.id,
+      const kasusParsed = konfirmasiSchema.safeParse(item.kasus);
+      if (!kasusParsed.success) {
+        failed.push({
+          id: item.id,
+          error: kasusParsed.error.issues[0]?.message ?? "Data kasus tidak valid",
         });
+        continue;
+      }
+
+      try {
         const hasil = await simpanKasusIntake(
-          kasus,
+          kasusParsed.data,
           session.user.id,
           session.user.username
         );
         saved.push({ id: item.id, kodeUnik: hasil.kodeUnik });
-      } catch (e) {
-        failed.push({
-          id: item.id,
-          error: e instanceof Error ? e.message : "gagal simpan",
-        });
+      } catch (err: any) {
+        failed.push({ id: item.id, error: err?.message ?? "Gagal menyimpan ke database" });
       }
     }
 
-    if (saved.length > 0) {
-      revalidatePath("/admin");
-      revalidatePath("/rujukan");
-    }
+    revalidatePath("/admin");
+    revalidatePath("/rujukan");
 
-    return NextResponse.json({
-      ok: true,
-      saved,
-      failed,
-      jumlah: saved.length,
-    });
+    return NextResponse.json({ ok: true, saved, failed });
   } catch (err) {
     console.error("[/api/offline/sync]", err);
-    return NextResponse.json({ ok: false, error: "Gagal sinkronisasi" }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
 }

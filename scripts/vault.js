@@ -1,5 +1,5 @@
 /**
- * SIGAP AI — Secure Environment Vault
+ * SATU AI — Secure Environment Vault
  * Utilitas enkripsi dan dekripsi file environment (.env <-> .env.enc)
  * Menggunakan algoritma terstandar industri: AES-256-GCM + Scrypt KDF
  */
@@ -14,11 +14,11 @@ const ENC_PATH = path.join(ROOT_DIR, '.env.enc');
 const EXAMPLE_PATH = path.join(ROOT_DIR, '.env.example');
 
 // Master key standar untuk evaluasi otomatis ITECHNO CUP 2026
-// Pengguna dapat meng-override dengan environment variable SIGAP_VAULT_KEY
-const DEFAULT_KEY = 'SIGAP-AI-ITECHNO-CUP-2026-VAL-KEY#PMI-TRIAGE-OFFLINE';
+// Pengguna dapat meng-override dengan environment variable SATU_VAULT_KEY
+const DEFAULT_KEY = 'SATU-AI-ITECHNO-CUP-2026-VAL-KEY#PMI-TRIAGE-OFFLINE';
 
 function getMasterKey() {
-  const customKey = process.env.SIGAP_VAULT_KEY;
+  const customKey = process.env.SATU_VAULT_KEY;
   if (customKey && customKey.trim().length > 0) {
     return customKey.trim();
   }
@@ -56,7 +56,7 @@ function encryptEnv(options = {}) {
   const authTag = cipher.getAuthTag();
 
   const payload = {
-    app: 'SIGAP AI',
+    app: 'SATU AI',
     version: '1.0',
     algorithm: 'aes-256-gcm',
     kdf: 'scrypt',
@@ -136,7 +136,7 @@ function decryptEnv(options = {}) {
  * Cek status environment
  */
 function statusEnv() {
-  console.log('--- SIGAP AI Environment Vault Status ---');
+  console.log('--- SATU AI Environment Vault Status ---');
   console.log(`- File .env     : ${fs.existsSync(ENV_PATH) ? 'Ada (Plaintext lokal)' : 'Tidak Ada'}`);
   console.log(`- File .env.enc : ${fs.existsSync(ENC_PATH) ? 'Ada (Terenkripsi aman)' : 'Tidak Ada'}`);
   console.log(`- File .env.ex  : ${fs.existsSync(EXAMPLE_PATH) ? 'Ada' : 'Tidak Ada'}`);

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halo, Cahaya! - Aplikasi Tanggap Darurat</title>
+    
+    <!-- Google Fonts: Poppins untuk kemiripan tipografi 100% dengan desain Figma -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet JS & CSS untuk Peta Interaktif OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        appBg: '#FAFAFA',
+                        sectionLabel: '#8E8E93',
+                        infoCardBg: '#CBE8EC',
+                        infoLink: '#169DB2',
+                        laporCardBg: '#E4F1FA',
+                        laporCardBorder: '#9AB3C4',
+                        laporDark: '#10222E',
+                        cariCardBg: '#FFF4D8',
+                        cariCardBorder: '#F5DFB0',
+                        cariOrange: '#FFA800',
+                        iconCircleBlue: '#DBECFA',
+                        relawanCardBg: '#E6F9FC',
+                        relawanCardBorder: '#AEECF6',
+                        relawanTeal: '#15B2C6',
+                        ctaTeal: '#1294A8',
+                    },
+                    boxShadow: {
+                        'soft-tile': '0 6px 16px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04)',
+                        'card-float': '0 8px 24px -4px rgba(0, 0, 0, 0.07)',
+                        'bottom-nav': '0 -4px 20px rgba(0, 0, 0, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F0F2F5;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Kustomisasi tampilan peta agar bersih & minimalis seperti desain */
+        .leaflet-control-attribution {
+            font-size: 8px !important;
+            background: rgba(255,255,255,0.6) !important;
+        }
+        
+        /* Efek rotasi/kemiringan ringan pada layer map jika ingin nuansa jalan miring + filter warna lembut */
+        .custom-map-tiles {
+            filter: saturate(1.05) contrast(0.98) brightness(1.02);
+        }
+
+        /* Animasi mikro untuk semua tombol */
+        .btn-interactive {
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-interactive:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body class="text-[#1C1C1E] antialiased selection:bg-relawanTeal selection:text-white min-h-screen flex flex-col justify-between bg-appBg">
+
+    <!-- WRAPPER UTAMA APLIKASI -->
+    <div id="appWrapper" class="w-full max-w-[480px] lg:max-w-5xl mx-auto bg-appBg min-h-screen relative pb-28 lg:pb-12 transition-all duration-300 overflow-hidden">
+
+        <!-- HEADER / PROFIL & NOTIFIKASI -->
+        <header class="px-5 pt-7 pb-3 lg:px-8 lg:pt-8 lg:pb-5 flex items-center justify-between bg-appBg sticky top-0 z-30">
+            <div class="flex items-center gap-3.5">
+                <!-- Button Avatar Profil -->
+                <button type="button" onclick="triggerAction('Membuka Foto & Pengaturan Profil Cahaya')" aria-label="Profil Pengguna" class="btn-interactive w-[52px] h-[52px] rounded-full bg-[#D6D6D6] hover:bg-[#CCCCCC] flex-shrink-0 flex items-center justify-center relative focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-laporDark shadow-inner overflow-hidden group">
+                    <span class="text-xs font-semibold text-gray-500 opacity-0 group-hover:opacity-100 transition">Edit</span>
+                </button>
+                <div>
+                    <h1 class="text-[20px] lg:text-2xl font-bold tracking-tight text-[#1A1A1A] leading-snug">
+                        Halo, Cahaya!
+                    </h1>
+                    <p class="text-[11.5px] lg:text-sm text-[#4A4A4A] font-normal leading-tight mt-0.5">
+                        Semoga kamu selalu dalam keadaan aman
+                    </p>
+                </div>
+            </div>
+
+            <!-- Button Lonceng Notifikasi Atas -->
+            <button type="button" onclick="triggerAction('Membuka Panel Notifikasi Darurat')" aria-label="Notifikasi" class="btn-interactive p-2 -mr-1 rounded-full hover:bg-gray-200/60 focus:outline-none focus:ring-2 focus:ring-laporDark relative">
+                <svg class="w-[23px] h-[23px] text-[#1A1A1A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <!-- Titik indikator halus -->
+                <span id="notifBadge" class="w-2 h-2 rounded-full bg-amber-500 absolute top-2 right-2"></span>
+            </button>
+        </header>
+
+        <!-- KONTEN UTAMA (1 Kolom di Mobile, 2 Kolom Proporsional di Desktop) -->
+        <main class="px-5 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-y-5 lg:gap-8">
+
+            <!-- KOLOM KIRI (Pada Desktop) / URUTAN ATAS (Pada Mobile) -->
+            <div class="lg:col-span-6 space-y-5">
+
+                <!-- SECTION 1: SITUASI TERKINI (BANNER PERINGATAN) -->
+                <section aria-labelledby="label-situasi-1">
+                    <h2 id="label-situasi-1" class="text-[11px] font-medium uppercase tracking-[0.04em] text-sectionLabel mb-2">
+                        SITUASI TERKINI
+                    </h2>
+                    <div class="bg-infoCardBg rounded-[16px] p-4 flex items-start gap-3.5 shadow-sm">
+                        <!-- Ikon Segitiga Warning Kuning -->
+                        <div class="mt-1 flex-shrink-0">
+                            <svg class="w-7 h-7" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12.316 4.492c.748-1.356 2.62-1.356 3.368 0l9.39 17.024c.72 1.305-.185 2.984-1.684 2.984H4.61c-1.499 0-2.404-1.679-1.684-2.984l9.39-17.024z" fill="#FDB000"/>
+                                <path d="M14 10.5v5.2" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+                                <circle cx="14" cy="19.3" r="1.3" fill="#FFFFFF"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-[13.5px] font-semibold text-[#1E2A2F] leading-snug">
+                                Informasi Terkini
+                            </h3>
+                            <p class="text-[11.5px] text-[#2C3A40] leading-[1.45] mt-0.5">
+                                Waspada potensi hujan lebat<br class=" sm:hidden"> di wilaya Jakarta dan sekitarnya
+                            </p>
+                            <!-- Button Lihat Detail -->
+                            <button type="button" onclick="openModal('Detail Peringatan Cuaca', 'BMKG memperkirakan hujan intensitas tinggi disertai angin kencang di wilayah DKI Jakarta (Jakarta Timur, Jakarta Selatan, dan sekitarnya) pada pukul 17.00 - 22.00 WIB. Pastikan saluran air tidak tersumbat dan siapkan tas siaga bencana.')" class="btn-interactive mt-1.5 inline-flex items-center text-[11.5px] font-medium text-infoLink hover:underline focus:outline-none">
+                                Lihat Detail
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 2: SITUASI TERKINI (DUA KARTU AKSI UTAMA) -->
+                <section aria-labelledby="label-situasi-2">
+                    <h2 id="label-situasi-2" class="text-[11px] font-medium uppercase tracking-[0.04em] text-sectionLabel mb-2">
+                        SITUASI TERKINI
+                    </h2>
+                    <div class="grid grid-cols-2 gap-3.5">
+                        
+                        <!-- Kartu Kiri: Laporkan Kondisi -->
+                        <div class="bg-laporCardBg border-[1.5px] border-laporCardBorder rounded-[16px] p-3.5 flex flex-col justify-between min-h-[192px]">
+                            <div>
+                                <!-- Badge Ikon Orang -->
+                                <div class="w-9 h-9 rounded-[9px] bg-laporDark flex items-center justify-center text-white mb-3">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-[13.5px] font-bold text-[#1A1A1A] leading-snug">
+                                    Laporkan Kondisi
+                                </h3>
+                                <p class="text-[10.5px] text-[#7A868E] leading-[1.4] mt-1">
+                                    Laporkan keadaan darurat atau kebutuhan
+                                </p>
+                            </div>
+
+                            <!-- Button Lapor Sekarang -->
+                            <button type="button" onclick="openFormModal('lapor')" class="btn-interactive mt-4 w-full py-2.5 px-2 rounded-[11px] bg-laporDark hover:bg-[#1b3546] text-white text-[12px] font-semibold tracking-tight shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-laporDark">
+                                Lapor Sekarang
+                            </button>
+                        </div>
+
+                        <!-- Kartu Kanan: Cari Bantuan -->
+                        <div class="bg-cariCardBg border-[1.5px] border-cariCardBorder rounded-[16px] p-3.5 flex flex-col justify-between min-h-[192px]">
+                            <div>
+                                <!-- Badge Ikon Kotak Bantuan -->
+                                <div class="w-9 h-9 rounded-[9px] bg-cariOrange flex items-center justify-center text-[#1A1A1A] mb-3">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                                        <rect x="2" y="7" width="20" height="5"></rect>
+                                        <line x1="12" y1="22" x2="12" y2="7"></line>
+                                        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                                        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-[13.5px] font-bold text-[#1A1A1A] leading-snug">
+                                    Cari Bantuan
+                                </h3>
+                                <p class="text-[10.5px] text-[#8A8270] leading-[1.4] mt-1">
+                                    Temukan posko dan layanan terdekat
+                                </p>
+                            </div>
+
+                            <!-- Button Cari Bantuan -->
+                            <button type="button" onclick="focusToMapSection()" class="btn-interactive mt-4 w-full py-2.5 px-2 rounded-[11px] bg-cariOrange hover:bg-[#e69700] text-[#1A1A1A] text-[12px] font-bold tracking-tight shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-cariOrange">
+                                Cari Bantuan
+                            </button>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- SECTION 3: AKSES BANTUAN (GRID 6 TOMBOL MENU) -->
+                <section aria-labelledby="label-akses-bantuan">
+                    <h2 id="label-akses-bantuan" class="text-[11px] font-medium uppercase tracking-[0.04em] text-sectionLabel mb-2">
+                        AKSES BANTUAN
+                    </h2>
+                    <div class="bg-[#FDFDFD] border border-gray-200/80 rounded-[18px] p-3.5 shadow-sm">
+                        <div class="grid grid-cols-4 gap-2.5">
+                            
+                            <!-- Item 1: Cari Bantuan -->
+                            <button type="button" onclick="filterMapCategory('Cari Bantuan')" class="btn-interactive bg-white rounded-[15px] py-3 px-1.5 shadow-soft-tile border border-gray-100/80 flex flex-col items-center justify-center gap-2 hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-infoLink">
+                                <div class="w-[38px] h-[38px] rounded-full bg-iconCircleBlue flex items-center justify-center text-laporDark">
+                                    <!-- Pin Lokasi di atas Base -->
+                                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 17c-3.5-2.5-6-5.2-6-8.5a6 6 0 1 1 12 0c0 3.3-2.5 6-6 8.5z"/>
+                                        <circle cx="12" cy="8.5" r="2"/>
+                                        <path d="M5 20.5h14"/>
+                                    </svg>
+                                </div>
+                                <span class="text-[8.5px] font-medium text-[#3A3A3C] text-center leading-tight">
+                                    Cari Bantuan
+                                </span>
+                            </button>
+
+                            <!-- Item 2: Layanan Medis -->
+                            <button type="button" onclick="filterMapCategory('Layanan Medis')" class="btn-interactive bg-white rounded-[15px] py-3 px-1.5 shadow-soft-tile border border-gray-100/80 flex flex-col items-center justify-center gap-2 hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-infoLink">
+                                <div class="w-[38px] h-[38px] rounded-full bg-iconCircleBlue flex items-center justify-center text-laporDark">
+                                    <!-- Tas Medis Solid -->
+                                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none">
+                                        <path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <rect x="3" y="6" width="18" height="14" rx="2.5" fill="currentColor"/>
+                                        <path d="M12 10v6M9 13h6" stroke="#DBECFA" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <span class="text-[8.5px] font-medium text-[#3A3A3C] text-center leading-tight">
+                                    Layanan Medis
+                                </span>
+                            </button>
+
+                            <!-- Item 3: Kebutuhan -->
+                            <button type="button" onclick="filterMapCategory('Kebutuhan Logistik')" class="btn-interactive bg-white rounded-[15px] py-3 px-1.5 shadow-soft-tile border border-gray-100/80 flex flex-col items-center justify-center gap-2 hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-infoLink">
+                                <div class="w-[38px] h-[38px] rounded-full bg-iconCircleBlue flex items-center justify-center text-laporDark">
+                                    <!-- Kubus 3D / Paket Logistik -->
+                                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M11.5 2.2a1 1 0 0 1 1 0l8 4.4a1 1 0 0 1 .5.87v9.06a1 1 0 0 1-.5.87l-8 4.4a1 1 0 0 1-1 0l-8-4.4a1 1 0 0 1-.5-.87V7.47a1 1 0 0 1 .5-.87l8-4.4z"/>
+                                        <path d="M3.8 7.2L12 11.8l8.2-4.6M12 11.8V21" stroke="#DBECFA" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <span class="text-[8.5px] font-medium text-[#3A3A3C] text-center leading-tight">
+                                    Kebutuhan
+                                </span>
+                            </button>
+
+                            <!-- Item 4: Peta -->
+                            <button type="button" onclick="focusToMapSection()" class="btn-interactive bg-white rounded-[15px] py-3 px-1.5 shadow-soft-tile border border-gray-100/80 flex flex-col items-center justify-center gap-2 hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-infoLink">
+                                <div class="w-[38px] h-[38px] rounded-full bg-iconCircleBlue flex items-center justify-center text-laporDark">
+                                    <!-- Ikon Peta Lipat -->
+                                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                                        <line x1="8" y1="2" x2="8" y2="18"></line>
+                                        <line x1="16" y1="6" x2="16" y2="22"></line>
+                                    </svg>
+                                </div>
+                                <span class="text-[8.5px] font-medium text-[#3A3A3C] text-center leading-tight">
+                                    Peta
+                                </span>
+                            </button>
+
+                            <!-- Item 5: Posko Terdekat -->
+                            <button type="button" onclick="filterMapCategory('Posko Terdekat')" class="btn-interactive bg-white rounded-[15px] py-3 px-1.5 shadow-soft-tile border border-gray-100/80 flex flex-col items-center justify-center gap-2 hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-infoLink">
+                                <div class="w-[38px] h-[38px] rounded-full bg-iconCircleBlue flex items-center justify-center text-laporDark">
+                                    <!-- Rumah Solid -->
+                                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M11.3 2.7a1 1 0 0 1 1.4 0l8 7.5A1 1 0 0 1 20 12h-2v8a1 1 0 0 1-1 1h-4v-6h-2v6H7a1 1 0 0 1-1-1v-8H4a1 1 0 0 1-.7-1.8l8-7.5z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-[8.5px] font-medium text-[#3A3A3C] text-center leading-tight">
+                                    Posko Terdekat
+                                </span>
+                            </button>
+
+                            <!-- Item 6: Lainnya -->
+                            <button type="button" onclick="openModal('Menu Akses Bantuan Lainnya', 'Pilih layanan darurat tambahan: Nomor Darurat 112, Dapur Umum, Pencarian Keluarga Terpisah, atau Konseling Trauma Pasca Bencana.')" class="btn-interactive bg-white rounded-[15px] py-3 px-1.5 shadow-soft-tile border border-gray-100/80 flex flex-col items-center justify-center gap-2 hover:border-blue-200 focus:outline-none focus:ring-2 focus:ring-infoLink">
+                                <div class="w-[38px] h-[38px] rounded-full bg-iconCircleBlue flex items-center justify-center text-laporDark">
+                                    <!-- Tiga Titik Horizontal -->
+                                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor">
+                                        <circle cx="6" cy="12" r="2"/>
+                                        <circle cx="12" cy="12" r="2"/>
+                                        <circle cx="18" cy="12" r="2"/>
+                                    </svg>
+                                </div>
+                                <span class="text-[8.5px] font-medium text-[#3A3A3C] text-center leading-tight">
+                                    Lainnya
+                                </span>
+                            </button>
+
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- KOLOM KANAN (Pada Desktop) / URUTAN BAWAH (Pada Mobile) -->
+            <div class="lg:col-span-6 space-y-5">
+
+                <!-- SECTION 4: BANTUAN DI SEKITARMU (PETA LEAFLET + OVERLAY CARD) -->
+                <section id="sectionPeta" aria-labelledby="label-bantuan-sekitar">
+                    <h2 id="label-bantuan-sekitar" class="text-[11px] font-medium uppercase tracking-[0.04em] text-sectionLabel mb-2">
+                        BANTUAN DI SEKITARMU
+                    </h2>
+                    
+                    <div class="bg-white rounded-[20px] shadow-card-float overflow-hidden border border-gray-100">
+                        <!-- Kontainer Peta Leaflet JS -->
+                        <div class="relative w-full h-[175px] lg:h-[205px] bg-[#E8ECEF]">
+                            <div id="mapContainer" class="w-full h-full z-10"></div>
+                            
+                            <!-- Tombol Kecil Reset Lokasi di Pojok Kanan Atas Peta -->
+                            <button type="button" onclick="centerMapToPosko()" title="Fokus ke Posko" class="btn-interactive absolute top-2.5 right-2.5 z-20 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full shadow text-[10px] font-semibold text-laporDark border border-gray-200 hover:bg-white">
+                                📍 Reset Fokus
+                            </button>
+                        </div>
+
+                        <!-- Bar Informasi Posko di Bawah Peta (Menyatu seperti di desain) -->
+                        <div class="relative z-20 -mt-3 bg-white rounded-t-[18px] px-4 py-3.5 flex items-center justify-between">
+                            <div>
+                                <h3 id="poskoTitle" class="text-[13.5px] font-bold text-[#1A1A1A] leading-snug">
+                                    Posko Pengungsian RW 05
+                                </h3>
+                                <p id="poskoDist" class="text-[12.5px] font-normal text-[#3A3A3C] mt-0.5">
+                                    1,2 km Tersedia
+                                </p>
+                            </div>
+
+                            <!-- Button Lihat di Peta -->
+                            <button type="button" onclick="openPoskoPopup()" class="btn-interactive text-[11.5px] font-bold text-[#EAA92A] hover:text-[#d19015] px-2 py-1.5 rounded-lg hover:bg-amber-50 focus:outline-none">
+                                Lihat di Peta
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 5: BANTU SESAMA (JADI RELAWAN & DONASI) -->
+                <section aria-labelledby="label-bantu-sesama">
+                    <h2 id="label-bantu-sesama" class="text-[11px] font-medium uppercase tracking-[0.04em] text-sectionLabel mb-2">
+                        BANTU SESAMA
+                    </h2>
+                    <div class="grid grid-cols-2 gap-3.5">
+                        
+                        <!-- Kartu Kiri: Jadi Relawan -->
+                        <div class="bg-relawanCardBg border-[1.5px] border-relawanCardBorder rounded-[16px] p-3.5 flex flex-col justify-between min-h-[196px]">
+                            <div>
+                                <!-- Badge Ikon Relawan Teal -->
+                                <div class="w-9 h-9 rounded-[9px] bg-relawanTeal flex items-center justify-center text-white mb-3">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-[13.5px] font-bold text-[#1A1A1A] leading-snug">
+                                    Jadi Relawan
+                                </h3>
+                                <p class="text-[10.5px] text-[#738B90] leading-[1.4] mt-1">
+                                    Daftar untuk membantu kegiatan di lapangan
+                                </p>
+                            </div>
+
+                            <!-- Button JOIN -->
+                            <button type="button" onclick="openFormModal('relawan')" class="btn-interactive mt-4 w-full py-2.5 px-2 rounded-[11px] bg-ctaTeal hover:bg-[#0e7c8d] text-white text-[12px] font-bold uppercase tracking-wide shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-ctaTeal">
+                                JOIN
+                            </button>
+                        </div>
+
+                        <!-- Kartu Kanan: Donasi -->
+                        <div class="bg-relawanCardBg border-[1.5px] border-relawanCardBorder rounded-[16px] p-3.5 flex flex-col justify-between min-h-[196px]">
+                            <div>
+                                <!-- Badge Ikon Donasi Teal -->
+                                <div class="w-9 h-9 rounded-[9px] bg-relawanTeal flex items-center justify-center text-white mb-3">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                                        <rect x="2" y="7" width="20" height="5"></rect>
+                                        <line x1="12" y1="22" x2="12" y2="7"></line>
+                                        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                                        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-[13.5px] font-bold text-[#1A1A1A] leading-snug">
+                                    Donasi
+                                </h3>
+                                <p class="text-[10.5px] text-[#738B90] leading-[1.4] mt-1">
+                                    Salurkan bantuan untuk kebutuhan yang sedang di perlukan
+                                </p>
+                            </div>
+
+                            <!-- Button DONASI -->
+                            <button type="button" onclick="openFormModal('donasi')" class="btn-interactive mt-4 w-full py-2.5 px-2 rounded-[11px] bg-ctaTeal hover:bg-[#0e7c8d] text-white text-[12px] font-bold uppercase tracking-wide shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-ctaTeal">
+                                DONASI
+                            </button>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- SECTION 6: BUTUH ARAHAN (KARTU BANTUAN INTERAKTIF) -->
+                <section aria-label="Panduan Arahan">
+                    <div class="bg-white rounded-[18px] p-4 shadow-soft-tile border border-gray-100 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3.5">
+                            <!-- Ikon Tanda Tanya Dalam Lingkaran -->
+                            <div class="flex-shrink-0 text-[#1A1A1A]">
+                                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-[13px] font-bold text-[#1A1A1A] leading-snug">
+                                    Butuh Arahan
+                                </h3>
+                                <p class="text-[10.5px] text-[#8E8E93] leading-[1.4] mt-0.5">
+                                    Jawab beberapa pertanyaan untuk menemukan bantuan yang sesuai
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Button Mulai -->
+                        <button type="button" onclick="openModal('Asisten Arahan Bantuan', 'Apakah Anda saat ini berada di lokasi aman? Kami akan memandu Anda menemukan posko evakuasi, bantuan medis, atau logistik dalam 3 langkah singkat.')" class="btn-interactive flex-shrink-0 text-[12px] font-medium text-[#3A3A3C] hover:text-black px-2.5 py-1.5 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-laporDark">
+                            Mulai
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <!-- BOTTOM NAVIGATION BAR (Mengambang Presisi di Bawah) -->
+        <nav aria-label="Navigasi Utama" class="fixed lg:absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] lg:max-w-full bg-white rounded-t-[24px] shadow-bottom-nav border-t border-gray-100 px-6 py-2.5 z-40">
+            <div class="grid grid-cols-4 items-center max-w-md mx-auto">
+                
+                <!-- Tab 1: Beranda (Aktif) -->
+                <button type="button" onclick="switchNavTab('Beranda', this)" class="nav-tab-btn btn-interactive flex flex-col items-center justify-center py-1 gap-1 text-relawanTeal focus:outline-none">
+                    <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 10.5L12 3l9 7.5v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9z"/>
+                        <rect x="9" y="14" width="6" height="7" rx="1"/>
+                    </svg>
+                    <span class="text-[9.5px] font-medium tracking-tight">Beranda</span>
+                </button>
+
+                <!-- Tab 2: Aktivitas -->
+                <button type="button" onclick="switchNavTab('Aktivitas', this)" class="nav-tab-btn btn-interactive flex flex-col items-center justify-center py-1 gap-1 text-[#1A1A1A] hover:text-relawanTeal focus:outline-none">
+                    <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="4" width="16" height="17" rx="2.5"/>
+                        <path d="M8 2v4M16 2v4M8 11h8M8 15h5"/>
+                    </svg>
+                    <span class="text-[9.5px] font-normal tracking-tight">Aktivitas</span>
+                </button>
+
+                <!-- Tab 3: Notifikasi -->
+                <button type="button" onclick="switchNavTab('Notifikasi', this)" class="nav-tab-btn btn-interactive flex flex-col items-center justify-center py-1 gap-1 text-[#1A1A1A] hover:text-relawanTeal focus:outline-none">
+                    <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="text-[9.5px] font-normal tracking-tight">Notifikasi</span>
+                </button>
+
+                <!-- Tab 4: Profil -->
+                <button type="button" onclick="switchNavTab('Profil', this)" class="nav-tab-btn btn-interactive flex flex-col items-center justify-center py-1 gap-1 text-[#1A1A1A] hover:text-relawanTeal focus:outline-none">
+                    <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="text-[9.5px] font-normal tracking-tight">Profil</span>
+                </button>
+
+            </div>
+        </nav>
+
+    </div>
+
+    <!-- MODAL DIALOG INTERAKTIF (Pengganti alert() agar pengalaman pengguna mulus) -->
+    <div id="customModal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 transform transition-all">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+                <h4 id="modalTitle" class="text-base font-bold text-[#1A1A1A]">Judul Informasi</h4>
+                <button type="button" onclick="closeModal()" class="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalBody" class="py-4 text-xs text-gray-600 leading-relaxed">
+                Isi pesan modal.
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal()" class="btn-interactive px-4 py-2 rounded-xl bg-laporDark text-white text-xs font-semibold hover:bg-slate-800">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST FEEDBACK RINGAN -->
+    <div id="toastBox" class="fixed top-16 left-1/2 -translate-x-1/2 z-[2000] pointer-events-none opacity-0 transition-opacity duration-300 bg-[#10222E] text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-relawanTeal"></span>
+        <span id="toastText">Aksi berhasil dipilih</span>
+    </div>
+
+    <script>
+        // ============================================================================
+        // 1. INISIALISASI PETA LEAFLET JS (OpenStreetMap dengan Gaya Bersih)
+        // ============================================================================
+        let map;
+        let mainMarker;
+        // Koordinat sungai & jalan di Jakarta (menampilkan alur sungai biru mirip ilustrasi desain)
+        const defaultCoords = [-6.2245, 106.8665];
+
+        const daftarLokasi = {
+            'Posko Terdekat': {
+                coords: [-6.2245, 106.8665],
+                nama: 'Posko Pengungsian RW 05',
+                jarak: '1,2 km Tersedia'
+            },
+            'Layanan Medis': {
+                coords: [-6.2218, 106.8692],
+                nama: 'Pos Medis Darurat Kampung Melayu',
+                jarak: '0,8 km Siaga 24 Jam'
+            },
+            'Kebutuhan Logistik': {
+                coords: [-6.2265, 106.8635],
+                nama: 'Gudang Logistik & Dapur Umum RW 03',
+                jarak: '1,5 km Tersedia'
+            },
+            'Cari Bantuan': {
+                coords: [-6.2245, 106.8665],
+                nama: 'Posko Pengungsian RW 05',
+                jarak: '1,2 km Tersedia'
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initLeafletMap();
+        });
+
+        function initLeafletMap() {
+            // Inisialisasi peta tanpa tombol zoom default agar bersih 100% seperti mockup
+            map = L.map('mapContainer', {
+                center: defaultCoords,
+                zoom: 16,
+                zoomControl: false,
+                attributionControl: true
+            });
+
+            // Menggunakan tile CartoDB Positron / Voyager atau OSM yang bersih dengan warna sungai biru cerah
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            // Ikon penanda posko kustom dengan SVG
+            const poskoIcon = L.divIcon({
+                className: 'custom-posko-pin',
+                html: `
+                    <div class="relative flex items-center justify-center">
+                        <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-sky-400 opacity-50"></span>
+                        <div class="relative w-7 h-7 rounded-full bg-[#10222E] border-2 border-white shadow-md flex items-center justify-center text-white">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z"/>
+                            </svg>
+                        </div>
+                    </div>
+                `,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+
+            mainMarker = L.marker(defaultCoords, { icon: poskoIcon })
+                .addTo(map)
+                .bindPopup('<b>Posko Pengungsian RW 05</b><br><span style="font-size:11px;color:#555;">Kapasitas: Tersedia (1,2 km)</span>');
+        }
+
+        function centerMapToPosko() {
+            if (!map) return;
+            map.flyTo(defaultCoords, 16, { duration: 0.8 });
+            showToast('Peta difokuskan ke Posko Pengungsian RW 05');
+        }
+
+        function openPoskoPopup() {
+            if (!map || !mainMarker) return;
+            map.flyTo(mainMarker.getLatLng(), 17, { duration: 0.6 });
+            mainMarker.openPopup();
+            showToast('Menampilkan detail lokasi di peta');
+        }
+
+        function focusToMapSection() {
+            const el = document.getElementById('sectionPeta');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                    openPoskoPopup();
+                }, 450);
+            }
+        }
+
+        function filterMapCategory(kategori) {
+            const item = daftarLokasi[kategori] || daftarLokasi['Posko Terdekat'];
+            document.getElementById('poskoTitle').textContent = item.nama;
+            document.getElementById('poskoDist').textContent = item.jarak;
+
+            if (map && mainMarker) {
+                mainMarker.setLatLng(item.coords);
+                mainMarker.setPopupContent(`<b>${item.nama}</b><br><span style="font-size:11px;color:#555;">Status: ${item.jarak}</span>`);
+                map.flyTo(item.coords, 16, { duration: 0.7 });
+                mainMarker.openPopup();
+            }
+            showToast(`Kategori dipilih: ${kategori}`);
+        }
+
+        // ============================================================================
+        // 2. INTERAKSI TOMBOL, NAVIGASI BAWAH & MODAL
+        // ============================================================================
+        function triggerAction(pesan) {
+            showToast(pesan);
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toastBox');
+            const toastText = document.getElementById('toastText');
+            toastText.textContent = text;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, 2400);
+        }
+
+        function switchNavTab(tabName, btnElement) {
+            const allTabs = document.querySelectorAll('.nav-tab-btn');
+            allTabs.forEach(btn => {
+                btn.classList.remove('text-relawanTeal');
+                btn.classList.add('text-[#1A1A1A]');
+                const span = btn.querySelector('span');
+                if (span) {
+                    span.classList.remove('font-medium');
+                    span.classList.add('font-normal');
+                }
+            });
+
+            btnElement.classList.remove('text-[#1A1A1A]');
+            btnElement.classList.add('text-relawanTeal');
+            const activeSpan = btnElement.querySelector('span');
+            if (activeSpan) {
+                activeSpan.classList.remove('font-normal');
+                activeSpan.classList.add('font-medium');
+            }
+
+            showToast(`Halaman ${tabName} aktif`);
+        }
+
+        function openModal(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML = `<p>${content}</p>`;
+            const modal = document.getElementById('customModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openFormModal(type) {
+            const modal = document.getElementById('customModal');
+            const titleEl = document.getElementById('modalTitle');
+            const bodyEl = document.getElementById('modalBody');
+
+            if (type === 'lapor') {
+                titleEl.textContent = 'Laporkan Kondisi Darurat';
+                bodyEl.innerHTML = `
+                    <div class="space-y-3">
+                        <p class="text-xs text-gray-500">Kirim laporan cepat ke tim tanggap darurat terdekat:</p>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-700 mb-1">Jenis Kondisi</label>
+                            <select class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:border-laporDark">
+                                <option>Banjir / Genangan Tinggi</option>
+                                <option>Butuh Evakuasi Medis</option>
+                                <option>Kekurangan Logistik & Air Bersih</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-700 mb-1">Keterangan Lokasi</label>
+                            <input type="text" placeholder="Contoh: Jl. Kebon Pala RT 04 / RW 05" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:border-laporDark">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'relawan') {
+                titleEl.textContent = 'Pendaftaran Relawan Lapangan';
+                bodyEl.innerHTML = `
+                    <div class="space-y-3">
+                        <p class="text-xs text-gray-500">Bergabung membantu warga di Posko Pengungsian RW 05:</p>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-700 mb-1">Bidang Keahlian</label>
+                            <select class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:border-ctaTeal">
+                                <option>Distribusi Logistik & Dapur Umum</option>
+                                <option>Tenaga Medis / P3K</option>
+                                <option>Evakuasi & SAR</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            } else {
+                titleEl.textContent = 'Salurkan Donasi Bantuan';
+                bodyEl.innerHTML = `
+                    <div class="space-y-3">
+                        <p class="text-xs text-gray-500">Pilih jenis bantuan yang ingin Anda salurkan:</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="showToast('Nominal Rp50.000 dipilih')" class="p-2 border rounded-xl text-xs font-semibold hover:bg-relawanCardBg hover:border-ctaTeal">Rp 50.000</button>
+                            <button type="button" onclick="showToast('Nominal Rp100.000 dipilih')" class="p-2 border rounded-xl text-xs font-semibold hover:bg-relawanCardBg hover:border-ctaTeal">Rp 100.000</button>
+                        </div>
+                        <p class="text-[11px] text-gray-500">Dana dan logistik disalurkan langsung ke Posko RW 05.</p>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    </script>
+</body>
+</html>

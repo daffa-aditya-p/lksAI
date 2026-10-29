@@ -12,13 +12,13 @@ import { INSTANSI_LABEL } from "@/lib/utils";
  */
 export async function kasusToXlsx(rows: Kasus[]): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "SIGAP AI";
+  wb.creator = "SATU AI";
   wb.created = new Date();
   const ws = wb.addWorksheet("Rujukan", {
     views: [{ state: "frozen", ySplit: 1 }],
   });
 
-  const HEADER_COLOR = "C8102E";
+  const HEADER_COLOR = "15B2C6";
   const BORDER: Partial<ExcelJS.Borders> = {
     top: { style: "thin", color: { argb: "FFD1D5DB" } },
     left: { style: "thin", color: { argb: "FFD1D5DB" } },

@@ -1,9 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import IntakeClient from "./IntakeClient";
 
-export const metadata = { title: "Intake — SIGAP AI" };
+export const metadata = { title: "Intake — SATU AI" };
 
-export default function IntakePage() {
+export default async function IntakePage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  // Hanya RELAWAN dan ADMIN yang berhak mengakses halaman Intake
+  if (session.user.role !== "RELAWAN" && session.user.role !== "ADMIN") {
+    redirect("/app");
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">

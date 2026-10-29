@@ -6,7 +6,7 @@ import PoskoAdminPanel from "@/components/peta/PoskoAdminPanel";
 import PendingConfirmationQueue from "@/components/peta/PendingConfirmationQueue";
 
 export const metadata: Metadata = {
-  title: "Kelola Peta Posko — SIGAP AI",
+  title: "Kelola Peta Posko — SATU AI",
 };
 
 /**

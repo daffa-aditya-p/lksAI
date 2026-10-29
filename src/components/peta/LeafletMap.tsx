@@ -41,7 +41,7 @@ function pinIcon() {
   return L.divIcon({
     className: "",
     html: `<div class="peta-pin" style="position:relative;width:34px;height:38px">
-      <div style="position:absolute;inset:0 0 6px 0;background:#c8102e;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 3px 12px rgba(200,16,46,.5);display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;inset:0 0 6px 0;background:#15B2C6;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 3px 12px rgba(21,178,198,.55);display:flex;align-items:center;justify-content:center">
         <div style="transform:rotate(45deg);color:#fff;font-size:14px"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></div>
       </div>
     </div>`,

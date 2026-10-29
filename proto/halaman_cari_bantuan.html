@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cari Bantuan - Aplikasi Tanggap Darurat</title>
+
+    <!-- Google Fonts: Poppins untuk kemiripan tipografi 100% dengan desain Figma -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet JS & CSS untuk Peta Interaktif OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        navyDark: '#0D1F2D',
+                        primaryTeal: '#00A9B8',
+                        primaryTealHover: '#00919E',
+                        searchBg: '#F2F2F2',
+                        searchBorder: '#E2E2E2',
+                        segmentBg: '#EFEFEF',
+                        medisIconBg: '#DAF2F6',
+                        medisIconStroke: '#0098A6',
+                        availBg: '#D8F8E1',
+                        availText: '#22A84B',
+                    },
+                    boxShadow: {
+                        'card-list': '0 4px 18px rgba(0, 0, 0, 0.045)',
+                        'floating-search': '0 6px 20px rgba(0, 0, 0, 0.07)',
+                        'floating-pill': '0 3px 10px rgba(0, 0, 0, 0.06)',
+                        'bottom-sheet': '0 -4px 28px rgba(0, 0, 0, 0.09)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #FFFFFF;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Hilangkan scrollbar pada baris filter pill mobile */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Animasi mikro untuk semua tombol */
+        .btn-interactive {
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-interactive:active {
+            transform: scale(0.96);
+        }
+
+        /* Kustomisasi atribusi Leaflet agar super bersih */
+        .leaflet-control-attribution {
+            font-size: 8px !important;
+            background: rgba(255, 255, 255, 0.55) !important;
+            border-radius: 4px 0 0 0;
+        }
+
+        /* Filter visual peta agar warna jalan, taman hijau, dan sungai biru persis desain Figma */
+        .leaflet-tile-pane {
+            filter: saturate(1.08) contrast(0.97) brightness(1.02);
+        }
+    </style>
+</head>
+<body class="text-[#1A1A1A] antialiased selection:bg-primaryTeal selection:text-white min-h-screen flex flex-col bg-white">
+
+    <!-- CONTAINER UTAMA RESPONSIF (MURNI 100% SESUAI DESAIN TANPA BAR TAMBAHAN) -->
+    <div id="mainStage" class="flex-1 flex flex-col items-center justify-center w-full mx-auto">
+
+        <!-- ====================================================================== -->
+        <!-- SUB-HALAMAN 1: TAMPILAN "SEMUA" / MODE DAFTAR                          -->
+        <!-- ====================================================================== -->
+        <section id="viewSemua" aria-label="Sub Halaman Semua - Daftar Bantuan" class="w-full max-w-[480px] lg:max-w-2xl bg-white min-h-screen flex flex-col justify-between relative overflow-hidden">
+            
+            <!-- BAGIAN ATAS: Header, Search, Filter Pill, Toggle Daftar/Peta, & List Card -->
+            <div class="px-6 pt-8 pb-6 flex-1 flex flex-col">
+                
+                <!-- 1. HEADER: Tombol Back Bulat + Judul "Cari Bantuan" -->
+                <header class="flex items-center gap-3.5 mb-6">
+                    <button type="button" onclick="handleBackButton()" aria-label="Kembali ke Beranda" class="btn-interactive w-[38px] h-[38px] rounded-full bg-[#EFEFEF] hover:bg-[#E4E4E4] flex items-center justify-center text-[#3A3A3C] focus:outline-none focus:ring-2 focus:ring-navyDark">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <h1 class="text-[20px] font-bold text-[#1A1A1A] tracking-tight">
+                        Cari Bantuan
+                    </h1>
+                </header>
+
+                <!-- 2. SEARCH BAR (Kotak Abu-abu Muda dengan Border Halus) -->
+                <div class="relative mb-5">
+                    <div class="w-full h-[54px] rounded-[18px] bg-searchBg border border-searchBorder px-4 flex items-center gap-3 focus-within:border-navyDark focus-within:bg-white transition">
+                        <!-- Button Ikon Search -->
+                        <button type="button" onclick="triggerSearch('inputSearchSemua')" aria-label="Cari lokasi" class="btn-interactive text-[#686868] hover:text-black focus:outline-none">
+                            <svg class="w-[21px] h-[21px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                        <input id="inputSearchSemua" type="text" oninput="filterFacilityCards(this.value)" placeholder="Cari lokasi atau jenis bantuan" class="w-full bg-transparent text-[13px] text-[#1A1A1A] placeholder-[#8C8C8C] font-normal focus:outline-none" />
+                    </div>
+                </div>
+
+                <!-- 3. BARIS FILTER KATEGORI (4 BUTTON PILL: Semua, Posko, Medis, Titik Bantuan) -->
+                <div class="grid grid-cols-4 gap-2.5 mb-5" role="tablist" aria-label="Filter Kategori Bantuan">
+                    <!-- Pill 1: Semua (Aktif di Sub-Halaman 1) -->
+                    <button type="button" onclick="switchSubPage('semua')" class="pill-btn-semua btn-interactive h-[34px] rounded-full bg-navyDark text-white text-[10.5px] font-medium flex items-center justify-center shadow-sm focus:outline-none">
+                        Semua
+                    </button>
+
+                    <!-- Pill 2: Posko (Berpindah ke Sub-Halaman Posko) -->
+                    <button type="button" onclick="switchSubPage('posko')" class="pill-btn-posko btn-interactive h-[34px] rounded-full bg-white border border-[#D4D4D4] text-[#2B2B2B] hover:border-navyDark text-[10.5px] font-medium flex items-center justify-center shadow-xs focus:outline-none">
+                        Posko
+                    </button>
+
+                    <!-- Pill 3: Medis (Button Disiapkan Sementara) -->
+                    <button type="button" onclick="handlePlaceholderCategory('Medis')" class="btn-interactive h-[34px] rounded-full bg-white border border-[#D4D4D4] text-[#2B2B2B] hover:border-navyDark text-[10.5px] font-medium flex items-center justify-center shadow-xs focus:outline-none">
+                        Medis
+                    </button>
+
+                    <!-- Pill 4: Titik Bantuan (Button Disiapkan Sementara) -->
+                    <button type="button" onclick="handlePlaceholderCategory('Titik Bantuan')" class="btn-interactive h-[34px] rounded-full bg-white border border-[#D4D4D4] text-[#2B2B2B] hover:border-navyDark text-[10.5px] font-medium flex items-center justify-center shadow-xs px-1 truncate focus:outline-none">
+                        Titik Bantuan
+                    </button>
+                </div>
+
+                <!-- 4. SEGMENTED CONTROL: DAFTAR vs PETA -->
+                <div class="bg-segmentBg p-1.5 rounded-[18px] grid grid-cols-2 gap-1.5 mb-6">
+                    <!-- Button Tab Daftar (Aktif) -->
+                    <button type="button" onclick="switchSubPage('semua')" class="btn-interactive h-[42px] rounded-[14px] bg-white shadow-sm flex items-center justify-center gap-2 text-[12.5px] font-semibold text-[#1A1A1A] focus:outline-none">
+                        <svg class="w-4 h-4 text-[#1A1A1A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        <span>Daftar</span>
+                    </button>
+
+                    <!-- Button Tab Peta (Pindah ke Tampilan Peta / Posko) -->
+                    <button type="button" onclick="switchSubPage('posko')" class="btn-interactive h-[42px] rounded-[14px] bg-transparent hover:bg-white/50 flex items-center justify-center gap-2 text-[12.5px] font-medium text-[#7A7A7A] focus:outline-none">
+                        <svg class="w-4 h-4 text-[#8C8C8C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                            <line x1="8" y1="2" x2="8" y2="18"></line>
+                            <line x1="16" y1="6" x2="16" y2="22"></line>
+                        </svg>
+                        <span>Peta</span>
+                    </button>
+                </div>
+
+                <!-- 5. DAFTAR KARTU LAYANAN (Masing-Masing Berupa <button> Interaktif) -->
+                <div id="facilityListContainer" class="space-y-4">
+                    
+                    <!-- Card Button 1: Puskesmas Kecamatan Kayu Putih -->
+                    <button type="button" onclick="selectFacilityFromList('Puskesmas Kecamatan Kayu Putih', '1,8 km', 'Layanan Medis', [-6.1885, 106.8890])" class="facility-card-item btn-interactive w-full text-left bg-white rounded-[18px] p-4 shadow-card-list border border-gray-100/90 hover:border-primaryTeal/50 flex items-center gap-4 focus:outline-none focus:ring-2 focus:ring-primaryTeal">
+                        <!-- Kotak Ikon Stetoskop Biru Muda -->
+                        <div class="w-[46px] h-[46px] rounded-[12px] bg-medisIconBg flex items-center justify-center flex-shrink-0 text-medisIconStroke">
+                            <svg class="w-[24px] h-[24px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
+                                <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/>
+                                <circle cx="20" cy="10" r="2"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="facility-name text-[14px] font-semibold text-[#222222] leading-snug truncate">
+                                Puskesmas Kecamatan Kayu Putih
+                            </h3>
+                            <p class="text-[11px] text-[#8E8E93] font-normal mt-0.5">
+                                1,8 | Layanan Medis
+                            </p>
+                        </div>
+                    </button>
+
+                    <!-- Card Button 2: Klinik Pengungsian RW 013 -->
+                    <button type="button" onclick="selectFacilityFromList('Klinik Pengungsian RW 013', '1,8 km', 'Layanan Medis', [-6.2215, 106.8685])" class="facility-card-item btn-interactive w-full text-left bg-white rounded-[18px] p-4 shadow-card-list border border-gray-100/90 hover:border-primaryTeal/50 flex items-center gap-4 focus:outline-none focus:ring-2 focus:ring-primaryTeal">
+                        <!-- Kotak Ikon Stetoskop Biru Muda -->
+                        <div class="w-[46px] h-[46px] rounded-[12px] bg-medisIconBg flex items-center justify-center flex-shrink-0 text-medisIconStroke">
+                            <svg class="w-[24px] h-[24px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
+                                <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/>
+                                <circle cx="20" cy="10" r="2"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="facility-name text-[14px] font-semibold text-[#222222] leading-snug truncate">
+                                Klinik Pengungsian RW 013
+                            </h3>
+                            <p class="text-[11px] text-[#8E8E93] font-normal mt-0.5">
+                                1,8 | Layanan Medis
+                            </p>
+                        </div>
+                    </button>
+
+                    <!-- Card Button 3: Pos Medis Darurat -->
+                    <button type="button" onclick="selectFacilityFromList('Pos Medis Darurat', '1,8 km', 'Layanan Medis', [-6.2255, 106.8642])" class="facility-card-item btn-interactive w-full text-left bg-white rounded-[18px] p-4 shadow-card-list border border-gray-100/90 hover:border-primaryTeal/50 flex items-center gap-4 focus:outline-none focus:ring-2 focus:ring-primaryTeal">
+                        <!-- Kotak Ikon Stetoskop Biru Muda -->
+                        <div class="w-[46px] h-[46px] rounded-[12px] bg-medisIconBg flex items-center justify-center flex-shrink-0 text-medisIconStroke">
+                            <svg class="w-[24px] h-[24px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
+                                <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/>
+                                <circle cx="20" cy="10" r="2"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="facility-name text-[14px] font-semibold text-[#222222] leading-snug truncate">
+                                Pos Medis Darurat
+                            </h3>
+                            <p class="text-[11px] text-[#8E8E93] font-normal mt-0.5">
+                                1,8 | Layanan Medis
+                            </p>
+                        </div>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- 6. TOMBOL BAWAH: "Gunkan Lokasi Saya" (Sesuai Teks Asli Desain) -->
+            <div class="px-6 pb-8 pt-4 bg-white">
+                <button type="button" onclick="useMyLocation()" class="btn-interactive w-full h-[54px] rounded-[16px] bg-primaryTeal hover:bg-primaryTealHover text-white text-[15px] font-semibold tracking-tight shadow-md flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primaryTeal">
+                    Gunkan Lokasi Saya
+                </button>
+            </div>
+        </section>
+
+        <!-- ====================================================================== -->
+        <!-- SUB-HALAMAN 2: TAMPILAN "POSKO" / MODE PETA PENUH                      -->
+        <!-- ====================================================================== -->
+        <section id="viewPosko" aria-label="Sub Halaman Posko - Peta Bantuan" class="hidden w-full max-w-[480px] lg:max-w-2xl bg-[#E8ECEF] min-h-screen flex-col justify-between relative overflow-hidden">
+            
+            <!-- LAYER 1: KANVAS PETA LEAFLET FULLSCREEN -->
+            <div id="leafletPoskoMap" class="absolute inset-0 w-full h-full z-10"></div>
+
+            <!-- LAYER 2: FLOATING SEARCH BAR & 4 FILTER PILLS DI ATAS PETA -->
+            <div class="relative z-20 px-5 pt-7 space-y-3.5 pointer-events-none">
+                
+                <!-- Floating Search Box Putih -->
+                <div class="pointer-events-auto w-full h-[54px] rounded-[20px] bg-white shadow-floating-search px-4 flex items-center gap-3 border border-white/80 focus-within:ring-2 focus-within:ring-primaryTeal">
+                    <button type="button" onclick="triggerSearch('inputSearchPosko')" aria-label="Cari di Peta" class="btn-interactive text-[#686868] hover:text-black focus:outline-none">
+                        <svg class="w-[21px] h-[21px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                    <input id="inputSearchPosko" type="text" onkeydown="if(event.key==='Enter') triggerSearch('inputSearchPosko')" placeholder="Cari lokasi atau jenis bantuan" class="w-full bg-transparent text-[13px] text-[#1A1A1A] placeholder-[#8C8C8C] font-normal focus:outline-none" />
+                </div>
+
+                <!-- 4 Floating Filter Pills (Semua, Posko [Aktif], Medis, Titik Bantuan) -->
+                <div class="pointer-events-auto grid grid-cols-4 gap-2.5" role="tablist" aria-label="Filter Peta">
+                    <!-- Pill 1: Semua (Kembali ke Sub-Halaman Semua) -->
+                    <button type="button" onclick="switchSubPage('semua')" class="btn-interactive h-[34px] rounded-full bg-white text-[#2B2B2B] hover:bg-gray-50 text-[10.5px] font-medium flex items-center justify-center shadow-floating-pill focus:outline-none">
+                        Semua
+                    </button>
+
+                    <!-- Pill 2: Posko (Aktif Gelap di Sub-Halaman 2) -->
+                    <button type="button" onclick="centerToActivePosko()" class="btn-interactive h-[34px] rounded-full bg-navyDark text-white text-[10.5px] font-medium flex items-center justify-center shadow-floating-pill focus:outline-none">
+                        Posko
+                    </button>
+
+                    <!-- Pill 3: Medis (Button Disiapkan Sementara) -->
+                    <button type="button" onclick="handlePlaceholderCategory('Medis')" class="btn-interactive h-[34px] rounded-full bg-white text-[#2B2B2B] hover:bg-gray-50 text-[10.5px] font-medium flex items-center justify-center shadow-floating-pill focus:outline-none">
+                        Medis
+                    </button>
+
+                    <!-- Pill 4: Titik Bantuan (Button Disiapkan Sementara) -->
+                    <button type="button" onclick="handlePlaceholderCategory('Titik Bantuan')" class="btn-interactive h-[34px] rounded-full bg-white text-[#2B2B2B] hover:bg-gray-50 text-[10.5px] font-medium flex items-center justify-center shadow-floating-pill px-1 truncate focus:outline-none">
+                        Titik Bantuan
+                    </button>
+                </div>
+            </div>
+
+            <!-- LAYER 3: FLOATING BOTTOM CARD PUTIH (Posko Pengungsian RW 05) -->
+            <div class="relative z-20 px-4 pb-5 pt-2 pointer-events-none mt-auto">
+                <div class="pointer-events-auto bg-white rounded-[28px] p-5 shadow-bottom-sheet border border-gray-100">
+                    
+                    <!-- Info Utama Posko: Lingkaran Navy Ikon Rumah + Nama & Jarak -->
+                    <div class="flex items-center gap-4 mb-5">
+                        <!-- Badge Bulat Navy Besar dengan Ikon Rumah Putih -->
+                        <button type="button" onclick="centerToActivePosko()" aria-label="Fokus ke Posko di Peta" class="btn-interactive w-[58px] h-[58px] rounded-full bg-navyDark flex items-center justify-center text-white flex-shrink-0 shadow-md focus:outline-none">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11.3 3.2a1 1 0 0 1 1.4 0l8 7.3a1 1 0 0 1-.67 1.74H18v7.76a1 1 0 0 1-1 1h-3.5v-5.5h-3V21H7a1 1 0 0 1-1-1v-7.76H3.97a1 1 0 0 1-.67-1.74l8-7.3z"/>
+                            </svg>
+                        </button>
+
+                        <div class="min-w-0 flex-1">
+                            <h2 id="mapSheetTitle" class="text-[17px] font-bold text-[#1A1A1A] leading-snug truncate">
+                                Posko Pengungsian RW 05
+                            </h2>
+                            <div class="flex items-center gap-2.5 mt-1">
+                                <!-- Pin Lokasi + Jarak -->
+                                <span class="inline-flex items-center gap-1 text-[13px] font-normal text-[#2B2B2B]">
+                                    <svg class="w-3.5 h-3.5 text-[#1A1A1A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    <span id="mapSheetDist">1,2 km</span>
+                                </span>
+
+                                <!-- Badge Hijau "Tersedia" -->
+                                <span id="mapSheetStatus" class="px-2.5 py-0.5 rounded-full bg-availBg text-availText text-[11.5px] font-medium">
+                                    Tersedia
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3 TOMBOL PILL TEAL DI DALAM CARD (Semua, Posko, Medis) -->
+                    <div class="grid grid-cols-3 gap-3 mb-5">
+                        <button type="button" onclick="switchSubPage('semua')" class="btn-interactive h-[34px] rounded-full bg-primaryTeal hover:bg-primaryTealHover text-white text-[11px] font-medium flex items-center justify-center shadow-xs focus:outline-none">
+                            Semua
+                        </button>
+                        <button type="button" onclick="showToast('Filter fasilitas Posko aktif')" class="btn-interactive h-[34px] rounded-full bg-primaryTeal hover:bg-primaryTealHover text-white text-[11px] font-medium flex items-center justify-center shadow-xs focus:outline-none">
+                            Posko
+                        </button>
+                        <button type="button" onclick="handlePlaceholderCategory('Medis')" class="btn-interactive h-[34px] rounded-full bg-primaryTeal hover:bg-primaryTealHover text-white text-[11px] font-medium flex items-center justify-center shadow-xs focus:outline-none">
+                            Medis
+                        </button>
+                    </div>
+
+                    <!-- TOMBOL UTAMA BAWAH: "Lihat Detail" -->
+                    <button type="button" onclick="openPoskoDetailModal()" class="btn-interactive w-full h-[54px] rounded-[16px] bg-primaryTeal hover:bg-primaryTealHover text-white text-[15px] font-semibold tracking-tight shadow-md flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primaryTeal">
+                        Lihat Detail
+                    </button>
+
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- MODAL DIALOG INTERAKTIF (Tanpa alert() sesuai standar UI modern) -->
+    <div id="infoModal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/55 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-[24px] max-w-sm w-full p-6 shadow-2xl border border-gray-100">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+                <h3 id="modalTitle" class="text-[16px] font-bold text-[#1A1A1A]">Detail Posko</h3>
+                <button type="button" onclick="closeInfoModal()" aria-label="Tutup" class="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalContent" class="py-4 text-[13px] text-gray-600 leading-relaxed space-y-2">
+                <!-- Diisi via JS -->
+            </div>
+            <div class="pt-2 flex justify-end gap-2">
+                <button type="button" onclick="closeInfoModal()" class="btn-interactive w-full py-2.5 rounded-[14px] bg-navyDark text-white text-[13px] font-semibold hover:bg-slate-800">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST FEEDBACK RINGAN -->
+    <div id="toastBanner" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[2500] pointer-events-none opacity-0 transition-all duration-300 bg-navyDark text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2 border border-white/10">
+        <span class="w-2 h-2 rounded-full bg-primaryTeal"></span>
+        <span id="toastMessage">Aksi dipilih</span>
+    </div>
+
+    <script>
+        // ============================================================================
+        // 1. STATE & INISIALISASI PETA LEAFLET JS (UNTUK SUB-HALAMAN POSKO)
+        // ============================================================================
+        let poskoMap = null;
+        let poskoMarker = null;
+        let currentSubPage = 'semua'; // 'semua' | 'posko'
+
+        // Koordinat Jakarta Timur (menampilkan blok jalan miring, taman hijau, dan aliran sungai di kanan bawah persis gambar referensi)
+        const defaultPoskoCoords = [-6.2242, 106.8662];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initPoskoLeafletMap();
+        });
+
+        function initPoskoLeafletMap() {
+            if (poskoMap) return;
+
+            poskoMap = L.map('leafletPoskoMap', {
+                center: defaultPoskoCoords,
+                zoom: 16,
+                zoomControl: false,
+                attributionControl: true
+            });
+
+            // Tile CartoDB Voyager No-Labels agar persis gaya peta vektor bersih pada desain Figma
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(poskoMap);
+
+            // Custom Pin Marker Posko
+            const customPoskoIcon = L.divIcon({
+                className: 'posko-map-pin',
+                html: `
+                    <div class="relative flex items-center justify-center">
+                        <span class="animate-ping absolute inline-flex h-10 w-10 rounded-full bg-cyan-500 opacity-40"></span>
+                        <div class="relative w-9 h-9 rounded-full bg-[#0D1F2D] border-2 border-white shadow-lg flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11.3 3.2a1 1 0 0 1 1.4 0l8 7.3a1 1 0 0 1-.67 1.74H18v7.76a1 1 0 0 1-1 1h-3.5v-5.5h-3V21H7a1 1 0 0 1-1-1v-7.76H3.97a1 1 0 0 1-.67-1.74l8-7.3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                `,
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+
+            poskoMarker = L.marker(defaultPoskoCoords, { icon: customPoskoIcon }).addTo(poskoMap);
+        }
+
+        // ============================================================================
+        // 2. NAVIGASI ANTAR 2 SUB-HALAMAN (SEMUA vs POSKO)
+        // ============================================================================
+        function switchSubPage(targetPage) {
+            currentSubPage = targetPage;
+            const viewSemua = document.getElementById('viewSemua');
+            const viewPosko = document.getElementById('viewPosko');
+
+            if (targetPage === 'posko') {
+                viewSemua.classList.add('hidden');
+                viewSemua.classList.remove('flex');
+                viewPosko.classList.remove('hidden');
+                viewPosko.classList.add('flex');
+
+                // Perbarui ukuran Leaflet saat container tampil
+                setTimeout(() => {
+                    if (poskoMap) {
+                        poskoMap.invalidateSize();
+                        poskoMap.setView(defaultPoskoCoords, 16);
+                    }
+                }, 150);
+            } else {
+                viewPosko.classList.add('hidden');
+                viewPosko.classList.remove('flex');
+                viewSemua.classList.remove('hidden');
+                viewSemua.classList.add('flex');
+            }
+        }
+
+        // ============================================================================
+        // 3. HANDLER UNTUK SEMUA <button> (TERMASUK BUTTON SEMENTARA)
+        // ============================================================================
+        function handlePlaceholderCategory(categoryName) {
+            // Sesuai instruksi user: baru ada 2 sub-halaman (Semua & Posko), kategori lain disiapkan button-nya sementara
+            showToast(`Tombol "${categoryName}" siap! (Sub-halaman ${categoryName} akan segera hadir)`);
+        }
+
+        function handleBackButton() {
+            showToast('Tombol Kembali diklik (Menuju halaman Beranda)');
+        }
+
+        function triggerSearch(inputId) {
+            const inputEl = document.getElementById(inputId);
+            if (!inputEl) return;
+            const val = inputEl.value.trim();
+            if (val) {
+                showToast(`Mencari bantuan: "${val}"`);
+            } else {
+                inputEl.focus();
+                showToast('Ketik nama lokasi atau jenis bantuan');
+            }
+        }
+
+        function filterFacilityCards(query) {
+            const q = query.toLowerCase().trim();
+            const cards = document.querySelectorAll('.facility-card-item');
+            cards.forEach(card => {
+                const title = card.querySelector('.facility-name').textContent.toLowerCase();
+                if (title.includes(q)) {
+                    card.classList.remove('hidden');
+                    card.classList.add('flex');
+                } else {
+                    card.classList.add('hidden');
+                    card.classList.remove('flex');
+                }
+            });
+        }
+
+        function selectFacilityFromList(name, dist, category, coords) {
+            document.getElementById('mapSheetTitle').textContent = name;
+            document.getElementById('mapSheetDist').textContent = dist;
+            switchSubPage('posko');
+
+            setTimeout(() => {
+                if (poskoMap && poskoMarker) {
+                    poskoMarker.setLatLng(coords);
+                    poskoMap.flyTo(coords, 16, { duration: 0.7 });
+                }
+            }, 220);
+        }
+
+        function centerToActivePosko() {
+            if (!poskoMap || !poskoMarker) return;
+            poskoMap.flyTo(poskoMarker.getLatLng(), 16, { duration: 0.6 });
+            showToast('Peta difokuskan ke titik Posko');
+        }
+
+        function useMyLocation() {
+            showToast('Mendeteksi titik GPS lokasi Anda saat ini...');
+            setTimeout(() => {
+                showToast('Lokasi diperbarui: 3 layanan terdekat ditemukan');
+            }, 1200);
+        }
+
+        function openPoskoDetailModal() {
+            const name = document.getElementById('mapSheetTitle').textContent;
+            const dist = document.getElementById('mapSheetDist').textContent;
+            document.getElementById('modalTitle').textContent = name;
+            document.getElementById('modalContent').innerHTML = `
+                <p><strong>Jarak Lokasi:</strong> ${dist} dari posisi Anda</p>
+                <p><strong>Status Ketersediaan:</strong> <span class="text-emerald-600 font-semibold">Tersedia (Kapasitas Aman)</span></p>
+                <p><strong>Fasilitas Tersedia:</strong> Tenda pengungsian keluarga, dapur umum, air bersih, dan pos pemeriksaan kesehatan dasar.</p>
+            `;
+            const modal = document.getElementById('infoModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeInfoModal() {
+            const modal = document.getElementById('infoModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function showToast(message) {
+            const banner = document.getElementById('toastBanner');
+            const textEl = document.getElementById('toastMessage');
+            textEl.textContent = message;
+            banner.classList.remove('opacity-0');
+            banner.classList.add('opacity-100');
+
+            clearTimeout(window._toastTimeout);
+            window._toastTimeout = setTimeout(() => {
+                banner.classList.remove('opacity-100');
+                banner.classList.add('opacity-0');
+            }, 2400);
+        }
+    </script>
+</body>
+</html>

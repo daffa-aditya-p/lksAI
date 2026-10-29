@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import { QrCode } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui";
+import type { Role } from "@prisma/client";
 
 /** Header dengan navigasi role-aware + tombol logout. */
 export function AppHeader({
@@ -13,7 +14,7 @@ export function AppHeader({
   role,
 }: {
   username: string;
-  role: "ADMIN" | "RELAWAN";
+  role: Role;
 }) {
   const pathname = usePathname();
 
@@ -26,9 +27,17 @@ export function AppHeader({
           { href: "/peta/instansi", label: "Peta Posko" },
           { href: "/admin/scan", label: "Scan QR", icon: true },
         ]
-      : [
-          { href: "/intake", label: "Intake" },
+      : role === "RELAWAN"
+      ? [
+          { href: "/relawan", label: "Dashboard" },
+          { href: "/intake", label: "Intake Triage" },
+          { href: "/admin/scan", label: "Scan QR", icon: true },
           { href: "/peta/instansi", label: "Peta Posko" },
+        ]
+      : [
+          { href: "/app", label: "Beranda" },
+          { href: "/posko", label: "Peta Posko" },
+          { href: "/app/aktivitas", label: "Aktivitas" },
         ];
 
   return (

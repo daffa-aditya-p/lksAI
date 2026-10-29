@@ -155,7 +155,7 @@ export default function AdminScanPage() {
                   <Button className="flex-1" variant="ghost" onClick={resetScanner}>
                     Batal
                   </Button>
-                  <Button className="flex-1 bg-pmi text-white hover:bg-red-700" onClick={handleConfirm}>
+                  <Button className="flex-1 bg-pmi text-white hover:bg-pmi-dark shadow-xs" onClick={handleConfirm}>
                     Konfirmasi Import
                   </Button>
                 </div>

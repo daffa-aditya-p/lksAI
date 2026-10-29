@@ -1,6 +1,6 @@
 {
-  "name": "SIGAP AI — Asesmen Kerentanan Pengungsi PMI",
-  "short_name": "SIGAP AI",
+  "name": "SATU AI — Asesmen Kerentanan Pengungsi PMI",
+  "short_name": "SATU AI",
   "description": "Sistem cerdas asesmen kerentanan pengungsi untuk relawan PMI. Offline-first: data intake tetap bisa dicatat di posko tanpa sinyal.",
   "id": "/",
   "start_url": "/",

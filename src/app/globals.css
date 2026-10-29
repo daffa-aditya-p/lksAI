@@ -29,8 +29,8 @@ button,
 .bg-hero {
   background-color: #f8fafc;
   background-image:
-    radial-gradient(60rem 40rem at 75% -10%, rgba(200, 16, 46, 0.1), transparent 60%),
-    radial-gradient(50rem 40rem at 0% 110%, rgba(200, 16, 46, 0.06), transparent 55%),
+    radial-gradient(60rem 40rem at 75% -10%, rgba(21, 178, 198, 0.12), transparent 60%),
+    radial-gradient(50rem 40rem at 0% 110%, rgba(255, 168, 0, 0.08), transparent 55%),
     linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 2.5rem 2.5rem, 2.5rem 2.5rem;
@@ -77,7 +77,7 @@ button,
   .mosaic-tent, .mosaic-building { display: none; }
 }
 
-/* Kartu fitur landing — grid enam kartu dari desain SIGAP. */
+/* Kartu fitur landing — grid enam kartu dari desain SATU. */
 .feature-card {
    min-height: 13.2rem;
    border: 1px solid #f0f0f0;
@@ -93,7 +93,7 @@ button,
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
 }
 .feature-card:focus-within {
-  outline: 3px solid rgba(200, 16, 46, 0.25);
+  outline: 3px solid rgba(21, 178, 198, 0.35);
   outline-offset: 3px;
 }
 .feature-icon {
@@ -183,11 +183,11 @@ button,
   justify-content: center;
   border-radius: 999px;
   background: #fff;
-  color: #c8102e;
+  color: #15B2C6;
   font-size: 0.95rem;
   transition: transform 180ms ease, background 180ms ease;
 }
-.landing-footer-socials a:hover { transform: translateY(-2px); background: #ffecef; }
+.landing-footer-socials a:hover { transform: translateY(-2px); background: #E6F9FC; }
 .landing-footer-form {
   display: flex;
   width: min(16rem, 100%);
@@ -210,7 +210,7 @@ button,
   width: 3.8rem;
   margin: 0.15rem;
   border-radius: 999px;
-  background: #c8102e;
+  background: #15B2C6;
   color: #fff;
   font-size: 0.55rem;
   font-weight: 700;
@@ -345,7 +345,7 @@ button,
 .impact-copy h2 {
   margin: 0;
   flex: 0 0 auto;
-  color: #c8102e;
+  color: #15B2C6;
   font-size: clamp(2.6rem, 3.8vw, 3.25rem);
   font-weight: 800;
   line-height: 1.12;
@@ -390,9 +390,9 @@ button,
   border-color: transparent;
 }
 .impact-card:hover {
-  border-color: #c8102e;
+  border-color: #15B2C6;
   transform: translateY(-10px);
-  box-shadow: 0 18px 36px -6px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(200, 16, 46, 0.16);
+  box-shadow: 0 18px 36px -6px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(21, 178, 198, 0.2);
   z-index: 10;
 }
 .impact-card b {
@@ -476,7 +476,7 @@ button,
 
 /* Cluster marker — tema PMI */
 .peta-cluster {
-  background: rgba(200, 16, 46, 0.88);
+  background: rgba(21, 178, 198, 0.9);
   color: #fff;
   border: 2.5px solid #fff;
   border-radius: 50%;
@@ -487,14 +487,14 @@ button,
   font-size: 13px;
   width: 42px;
   height: 42px;
-  box-shadow: 0 3px 12px rgba(200, 16, 46, 0.4);
+  box-shadow: 0 3px 12px rgba(21, 178, 198, 0.45);
 }
 
 /* Pin manual (drop pin) — animasi pulsing */
 @keyframes peta-pin-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0.45); }
-  70% { box-shadow: 0 0 0 14px rgba(200, 16, 46, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(21, 178, 198, 0.45); }
+  70% { box-shadow: 0 0 0 14px rgba(21, 178, 198, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(21, 178, 198, 0); }
 }
 .peta-pin {
   animation: peta-pin-pulse 1.6s ease-out infinite;
@@ -530,4 +530,17 @@ button,
   font-weight: 800;
   color: #fff;
   white-space: nowrap;
+}
+
+
+/* User App Interactive & Micro-interactions */
+.btn-interactive {
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-interactive:active {
+  transform: scale(0.96);
+}
+
+.custom-map-tiles {
+  filter: saturate(1.05) contrast(0.98) brightness(1.02);
 }

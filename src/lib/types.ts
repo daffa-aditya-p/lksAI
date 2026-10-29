@@ -76,9 +76,11 @@ export type RincianSkor = {
   poin: number;
 };
 
+export type LevelPrioritas = "HIJAU" | "KUNING" | "MERAH";
+
 export type HasilSkor = {
   skor: number;
-  level: "HIJAU" | "KUNING" | "MERAH";
+  level: LevelPrioritas;
   rincian: RincianSkor[];
   perluVerifikasiMedis: boolean;
 };

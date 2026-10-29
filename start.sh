@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =====================================================================
-#   SIGAP AI — Automated Launcher for Linux / WSL / macOS
+#   SATU AI — Automated Launcher for Linux / WSL / macOS
 # =====================================================================
 
 set -e
 cd "$(dirname "$0")"
 
 echo "====================================================================="
-echo "   SIGAP AI — Sistem Cerdas Asesmen Kerentanan Pengungsi (PMI)"
+echo "   SATU AI — Sistem Cerdas Asesmen Kerentanan Pengungsi (PMI)"
 echo "   Automated Launcher for Linux / WSL / macOS"
 echo "====================================================================="
 echo ""
@@ -78,11 +78,11 @@ echo ""
 
 # Run Server in background and save PID
 echo "====================================================================="
-echo "   MEMULAI SERVER SIGAP AI..."
+echo "   MEMULAI SERVER SATU AI..."
 echo "====================================================================="
-npm run dev > .sigap_server.log 2>&1 &
+npm run dev > .satu_server.log 2>&1 &
 SERVER_PID=$!
-echo "$SERVER_PID" > .sigap.pid
+echo "$SERVER_PID" > .satu.pid
 
 echo "[i] Menunggu server aktif di port 3000 (PID: $SERVER_PID)..."
 ATTEMPTS=0
@@ -100,7 +100,7 @@ while [ $ATTEMPTS -lt 25 ]; do
     fi
 done
 
-echo "[✓] Server SIGAP AI aktif di http://localhost:3000!"
+echo "[✓] Server SATU AI aktif di http://localhost:3000!"
 echo ""
 
 # Try opening browser if GUI available
@@ -111,7 +111,7 @@ elif command -v open >/dev/null 2>&1; then
 fi
 
 echo "====================================================================="
-echo "   SIGAP AI — SERVER SEDANG BERJALAN DENGAN SUKSES!"
+echo "   SATU AI — SERVER SEDANG BERJALAN DENGAN SUKSES!"
 echo "====================================================================="
 echo "   Alamat Aplikasi : http://localhost:3000"
 echo "   Alamat Login    : http://localhost:3000/login"
@@ -122,6 +122,6 @@ echo "   AKUN PENGUJIAN JURI:"
 echo "   1. ADMIN   -> username: admin   | password: admin123"
 echo "   2. RELAWAN -> username: relawan | password: relawan123"
 echo ""
-echo "   Log server dapat dilihat di: .sigap_server.log"
+echo "   Log server dapat dilihat di: .satu_server.log"
 echo "   Untuk mematikan server, jalankan: ./stop.sh"
 echo "====================================================================="

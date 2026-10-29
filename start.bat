@@ -1,11 +1,11 @@
 @echo off
-title SIGAP AI - Server Launcher
+title SATU AI - Server Launcher
 chcp 65001 >nul 2>&1
 
 cd /d "%~dp0"
 
 echo =====================================================================
-echo    SIGAP AI - Sistem Cerdas Asesmen Kerentanan Pengungsi (PMI)
+echo    SATU AI - Sistem Cerdas Asesmen Kerentanan Pengungsi (PMI)
 echo    Production-Grade Automated Launcher for Evaluators dan Judges
 echo =====================================================================
 echo.
@@ -91,15 +91,15 @@ timeout /t 1 >nul 2>&1
 echo [OK] Port 3000 siap digunakan.
 echo.
 
-REM Menjalankan Server Web SIGAP AI
+REM Menjalankan Server Web SATU AI
 echo =====================================================================
-echo    MEMULAI SERVER SIGAP AI (NEXT.JS)...
+echo    MEMULAI SERVER SATU AI (NEXT.JS)...
 echo =====================================================================
 echo.
 
-if exist ".sigap.pid" del /f /q ".sigap.pid" >nul 2>&1
+if exist ".satu.pid" del /f /q ".satu.pid" >nul 2>&1
 
-start "SIGAP AI - Web Server" /d "%~dp0" cmd.exe /k "npm run dev"
+start "SATU AI - Web Server" /d "%~dp0" cmd.exe /k "npm run dev"
 
 echo [i] Menunggu server siap di port 3000...
 set ATTEMPTS=0
@@ -117,8 +117,8 @@ echo [!] Server memerlukan waktu inisialisasi lebih lama. Melanjutkan...
 goto LAUNCH_BROWSER
 
 :SERVER_READY
-powershell -NoProfile -ExecutionPolicy Bypass -Command "(Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess | Select-Object -First 1 | Out-File -Encoding ascii -FilePath '.sigap.pid'" >nul 2>&1
-echo [OK] Server SIGAP AI aktif di http://localhost:3000!
+powershell -NoProfile -ExecutionPolicy Bypass -Command "(Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue).OwningProcess | Select-Object -First 1 | Out-File -Encoding ascii -FilePath '.satu.pid'" >nul 2>&1
+echo [OK] Server SATU AI aktif di http://localhost:3000!
 
 :LAUNCH_BROWSER
 echo [i] Membuka web browser ke http://localhost:3000...
@@ -126,7 +126,7 @@ start http://localhost:3000
 
 echo.
 echo =====================================================================
-echo    SIGAP AI - SERVER SEDANG BERJALAN DENGAN SUKSES!
+echo    SATU AI - SERVER SEDANG BERJALAN DENGAN SUKSES!
 echo =====================================================================
 echo.
 echo    Alamat Aplikasi : http://localhost:3000
@@ -152,11 +152,11 @@ echo                    Auto-Sync ke database saat online kembali.
 echo  -------------------------------------------------------------------
 echo.
 echo    CATATAN:
-echo    - Jendela terminal server aktif di latar belakang (title: SIGAP AI - Web Server).
+echo    - Jendela terminal server aktif di latar belakang (title: SATU AI - Web Server).
 echo    - Untuk mematikan server dengan bersih, cukup jalankan 'stop.bat'.
 echo.
 echo =====================================================================
 echo  Tekan tombol apa saja untuk menutup jendela launcher ini.
-echo  (Server SIGAP AI akan tetap berjalan sampai Anda menjalankan stop.bat)
+echo  (Server SATU AI akan tetap berjalan sampai Anda menjalankan stop.bat)
 echo =====================================================================
 pause >nul

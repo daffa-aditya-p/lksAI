@@ -4,12 +4,15 @@ import { authConfig } from "@/auth.config";
 
 // Middleware memakai config edge-safe (tanpa Prisma). Cek role dari JWT.
 const { auth } = NextAuth(authConfig);
+
 /**
  * RBAC:
- *  - /admin/*, /rujukan/*           -> hanya ADMIN
- *  - /intake/*                      -> RELAWAN atau ADMIN (admin boleh lihat semua)
- *  - /login                         -> publik; jika sudah login, redirect ke beranda role
- *  - /mandiri/*, /, /api/auth/*     -> publik (mode korban mandiri tanpa login)
+ *  - /admin/*, /rujukan/*, /peta/admin   -> hanya ADMIN
+ *  - /intake/*                           -> RELAWAN atau ADMIN
+ *  - /app/*                              -> USER, RELAWAN, atau ADMIN (wajib login)
+ *  - /peta/instansi                      -> wajib login
+ *  - /login                              -> publik; jika sudah login, redirect ke beranda role
+ *  - /mandiri/*, /, /api/auth/*          -> publik
  */
 export default auth((req) => {
   const { nextUrl } = req;
@@ -19,37 +22,47 @@ export default auth((req) => {
   const path = nextUrl.pathname;
 
   const isAdminArea =
-      path.startsWith("/admin") ||
-      path.startsWith("/rujukan") ||
-      path.startsWith("/peta/admin");
-    const isRelawanArea = path.startsWith("/intake");
-    // Area yang butuh login tapi boleh dilihat relawan & admin (read-only).
-    const isAuthArea = path.startsWith("/peta/instansi");
-    const isLogin = path === "/login";
+    path.startsWith("/admin") ||
+    path.startsWith("/rujukan") ||
+    path.startsWith("/peta/admin");
 
-  // Sudah login tapi membuka /login → arahkan ke beranda sesuai role.
-  if (isLogin && isLoggedIn) {
-    const home = role === "ADMIN" ? "/admin" : "/intake";
-    return NextResponse.redirect(new URL(home, nextUrl));
+  const isRelawanArea = path.startsWith("/intake");
+  const isUserAppArea = path.startsWith("/app");
+  const isAuthArea = path.startsWith("/peta/instansi");
+  const isAuthPage = path === "/login" || path === "/daftar" || path === "/lupa-sandi";
+
+  // Helper beranda role
+  const getHomeForRole = (r?: string) => {
+    if (r === "ADMIN") return "/admin";
+    if (r === "RELAWAN") return "/intake";
+    return "/app";
+  };
+
+  // 1. Sudah login tapi membuka halaman autentikasi → arahkan ke beranda sesuai role.
+  if (isAuthPage && isLoggedIn) {
+    return NextResponse.redirect(new URL(getHomeForRole(role), nextUrl));
   }
 
-  // Sudah login & membuka halaman publik "/" → arahkan ke beranda role
-  // (hindari landing page membingungkan setelah login ulang).
+  // 2. Sudah login & membuka landing page "/" → arahkan ke beranda role
   if (path === "/" && isLoggedIn) {
-    const home = role === "ADMIN" ? "/admin" : "/intake";
-    return NextResponse.redirect(new URL(home, nextUrl));
+    return NextResponse.redirect(new URL(getHomeForRole(role), nextUrl));
   }
 
-  // Area terproteksi tapi belum login → ke /login (+ callback).
-    if ((isAdminArea || isRelawanArea || isAuthArea) && !isLoggedIn) {
+  // 3. Area terproteksi tapi belum login → ke /login (+ callback).
+  if ((isAdminArea || isRelawanArea || isAuthArea || isUserAppArea) && !isLoggedIn) {
     const url = new URL("/login", nextUrl);
     url.searchParams.set("callbackUrl", path);
     return NextResponse.redirect(url);
   }
 
-  // Area admin diakses non-admin → tolak ke beranda relawan.
+  // 4. Area admin diakses non-admin → tolak ke beranda rolenya.
   if (isAdminArea && role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/intake", nextUrl));
+    return NextResponse.redirect(new URL(getHomeForRole(role), nextUrl));
+  }
+
+  // 5. Area intake relawan diakses oleh role USER biasa → tolak ke /app.
+  if (isRelawanArea && role !== "RELAWAN" && role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/app", nextUrl));
   }
 
   return NextResponse.next();

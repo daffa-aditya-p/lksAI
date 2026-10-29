@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import MapClient from "@/components/peta/MapClient";
 
 export const metadata: Metadata = {
-  title: "Peta Instansi — SIGAP AI",
+  title: "Peta Instansi — SATU AI",
 };
 
 /**

@@ -30,6 +30,14 @@ export async function simpanKasusTerkonfirmasi(
     const session = await auth();
     if (!session?.user) return { ok: false, error: "Tidak terautentikasi" };
 
+    // RBAC KETAT: Hanya role RELAWAN dan ADMIN yang boleh input intake keluarga
+    if (session.user.role !== "RELAWAN" && session.user.role !== "ADMIN") {
+      return {
+        ok: false,
+        error: "Akses ditolak: Hanya Relawan PMI atau Admin Posko yang berhak melakukan intake pengungsi.",
+      };
+    }
+
     const parsed = konfirmasiSchema.safeParse(input);
     if (!parsed.success) {
       return { ok: false, error: parsed.error.issues[0]?.message ?? "Data tidak valid" };
@@ -110,6 +118,10 @@ export async function updateKasus(
   try {
     const session = await auth();
     if (!session?.user) return { ok: false, error: "Tidak terautentikasi" };
+
+    if (session.user.role !== "RELAWAN" && session.user.role !== "ADMIN") {
+      return { ok: false, error: "Akses ditolak" };
+    }
 
     const existing = await prisma.kasus.findUnique({ where: { id: kasusId } });
     if (!existing) return { ok: false, error: "Kasus tidak ditemukan" };
@@ -206,6 +218,10 @@ export async function hapusKasus(
   try {
     const session = await auth();
     if (!session?.user) return { ok: false, error: "Tidak terautentikasi" };
+
+    if (session.user.role !== "RELAWAN" && session.user.role !== "ADMIN") {
+      return { ok: false, error: "Akses ditolak" };
+    }
 
     const existing = await prisma.kasus.findUnique({ where: { id: kasusId } });
     if (!existing) return { ok: false, error: "Kasus tidak ditemukan" };

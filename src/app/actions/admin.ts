@@ -53,7 +53,7 @@ export async function resetSemuaData(
 const userSchema = z.object({
   username: z.string().trim().min(3).max(40),
   password: z.string().min(6).max(100),
-  role: z.enum(["RELAWAN", "ADMIN"]),
+  role: z.enum(["USER", "RELAWAN", "ADMIN"]),
 });
 
 export async function buatUser(

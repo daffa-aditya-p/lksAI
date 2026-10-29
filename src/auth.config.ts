@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import type { Role } from "@prisma/client";
 
 /**
  * Konfigurasi Auth.js yang AMAN untuk Edge runtime (middleware).
@@ -30,7 +31,7 @@ export const authConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
-        session.user.role = token.role as "ADMIN" | "RELAWAN";
+        session.user.role = token.role as Role;
       }
       return session;
     },

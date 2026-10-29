@@ -15,6 +15,11 @@ const envSchema = z.object({
   GROQ_API_KEY: z.string().min(1).optional(),
   AUTH_SECRET: z.string().min(1, "AUTH_SECRET wajib diisi"),
   AUTH_URL: z.string().url().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().optional(),
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
@@ -34,7 +39,7 @@ if (!parsed.success && !skipValidation) {
     .join("\n");
   // Hentikan boot dengan pesan yang bisa dibaca manusia.
   throw new Error(
-    `\n[SIGAP AI] Konfigurasi environment tidak valid:\n${issues}\n` +
+    `\n[SATU AI] Konfigurasi environment tidak valid:\n${issues}\n` +
       `Salin .env.example menjadi .env lalu isi nilainya.\n`
   );
 }

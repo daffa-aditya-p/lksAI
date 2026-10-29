@@ -12,9 +12,10 @@ export function Spinner({ className = "" }: { className?: string }) {
   );
 }
 
-type Variant = "primary" | "danger" | "ghost" | "success";
+type Variant = "primary" | "secondary" | "danger" | "ghost" | "success";
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-pmi text-white hover:bg-pmi-dark disabled:opacity-50",
+  primary: "bg-pmi text-white hover:bg-pmi-dark shadow-xs disabled:opacity-50",
+  secondary: "bg-cariOrange text-[#1A1A1A] hover:bg-[#E69700] font-bold shadow-xs disabled:opacity-50",
   danger: "bg-merah text-white hover:bg-red-700 disabled:opacity-50",
   success: "bg-hijau text-white hover:bg-green-700 disabled:opacity-50",
   ghost: "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 disabled:opacity-50",

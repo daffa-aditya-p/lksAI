@@ -3,7 +3,7 @@ import { INSTANSI_LABEL } from "@/lib/utils";
 import { LevelBadge } from "@/components/ui";
 import type { Instansi } from "@prisma/client";
 
-export const metadata = { title: "Rujukan Instansi — SIGAP AI" };
+export const metadata = { title: "Rujukan Instansi — SATU AI" };
 export const dynamic = "force-dynamic";
 
 const INSTANSI_LIST: Instansi[] = ["DINAS_KESEHATAN", "DINAS_SOSIAL", "BPBD"];

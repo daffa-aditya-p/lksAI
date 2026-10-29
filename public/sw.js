@@ -1,4 +1,4 @@
-/* SIGAP AI — Service Worker (Offline-first PWA)
+/* SATU AI — Service Worker (Offline-first PWA)
  *
  * 1. Precache shell statis (manifest, icons, halaman masuk).
  * 2. Runtime cache semua GET: navigasi network-first (fallback ke cache),
@@ -6,11 +6,11 @@
  * 3. Background Sync "sync-intake": kirim antrian intake (IndexedDB) ke
  *    /api/offline/sync saat koneksi pulih — otomatis, tanpa buka app.
  */
-const CACHE_NAME = "sigap-v3";
+const CACHE_NAME = "satu-v6";
 const SHELL = ["/", "/login", "/intake", "/manifest.json", "/icon-192.png", "/icon-512.png"];
 
 /* ── IndexedDB (antrian intake offline) ─────────────────── */
-const DB_NAME = "sigap-offline";
+const DB_NAME = "satu-offline";
 const DB_VER = 1;
 const STORE = "pending_intake";
 
@@ -79,6 +79,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return; // jangan cache API eksternal
   if (url.pathname.startsWith("/api/")) return; // API: selalu network (auth cookie)
+  if (url.pathname.startsWith("/_next/")) return; // _next: selalu network (chunks/HMR development & production hash)
 
   // Navigasi halaman: network-first, fallback cache → shell.
   if (req.mode === "navigate") {

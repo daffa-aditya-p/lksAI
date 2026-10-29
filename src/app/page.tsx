@@ -5,6 +5,7 @@ import { Poppins } from "next/font/google";
 import { auth } from "@/auth";
 import { FaqAccordion } from "@/components/landing/FaqAccordion";
 import { MapIllustration } from "@/components/landing/MapIllustration";
+import { LandingNavbar } from "@/components/landing/LandingNavbar";
 import "./landing.css";
 import {
   Bot,
@@ -72,21 +73,7 @@ export default async function Home() {
     <main className={`sg ${poppins.className}`} style={{ fontFamily: "var(--font-poppins), system-ui, sans-serif" }}>
       {/* ───────────── HERO ───────────── */}
       <section className="sg-hero" id="home">
-        <header className="sg-nav">
-          <div className="sg-wrap sg-nav-inner">
-            <Link href="/" aria-label={`${BRAND} — beranda`}>
-              <Image src="/logo-no-background.png" alt={`Logo ${BRAND}`} width={44} height={44} priority style={{ objectFit: "contain" }} />
-            </Link>
-            <nav className="sg-nav-links" aria-label="Navigasi utama">
-              <a href="#home" className="is-active keep">Home</a>
-              <a href="#situasi">Situasi</a>
-              <a href="#posko">Posko</a>
-              <a href="#informasi">Informasi</a>
-              <Link href="/login" className="hide-md">Masuk</Link>
-              <Link href="/mandiri/POSKO01" className="sg-btn-orange">Lapor Sekarang</Link>
-            </nav>
-          </div>
-        </header>
+        <LandingNavbar brand={BRAND} />
 
         <div className="sg-hero-photo" aria-hidden="true">
           <Image src="/images/landing/hero-ruins.jpg" alt="" fill priority sizes="(max-width: 900px) 100vw, 62vw" />
@@ -240,7 +227,7 @@ export default async function Home() {
             <aside className="sg-panel" aria-label="Bantuan di sekitarmu">
               <h3>Bantuan di Sekitarmu</h3>
 
-              <Link href="/peta" className="sg-place">
+              <Link href="/posko" className="sg-place">
                 <span className="dot navy"><Building2 size={13} aria-hidden="true" /></span>
                 <span className="txt">
                   <b>Posko Pengungsian RW 05</b>
@@ -249,7 +236,7 @@ export default async function Home() {
                 <ChevronRight className="chev" size={12} aria-hidden="true" />
               </Link>
 
-              <Link href="/peta" className="sg-place">
+              <Link href="/posko" className="sg-place">
                 <span className="dot red"><Plus size={13} aria-hidden="true" /></span>
                 <span className="txt">
                   <b>Puskesmas Kecamatan</b>
@@ -258,7 +245,7 @@ export default async function Home() {
                 <ChevronRight className="chev" size={12} aria-hidden="true" />
               </Link>
 
-              <Link href="/peta" className="sg-place">
+              <Link href="/posko" className="sg-place">
                 <span className="dot yel"><Truck size={13} aria-hidden="true" /></span>
                 <span className="txt">
                   <b>Titik Bantuan Medis</b>
@@ -267,10 +254,10 @@ export default async function Home() {
                 <ChevronRight className="chev" size={12} aria-hidden="true" />
               </Link>
 
-              <Link href="/peta" className="sg-btn-orange">
+              <Link href="/posko" className="sg-btn-orange">
                 <Navigation size={12} aria-hidden="true" /> Gunakan Lokasi Saya
               </Link>
-              <Link href="/peta" className="sg-btn-outline">
+              <Link href="/posko" className="sg-btn-outline">
                 Lihat Semua <ChevronRight size={12} aria-hidden="true" />
               </Link>
             </aside>
@@ -294,7 +281,7 @@ export default async function Home() {
           <div className="sg-footer-grid">
             <div>
               <p className="sg-footer-msg">
-                Melalui Website <strong>SIGAP</strong> kita membangun kesadaran dan kesiapsiagaan menghadapi bencana.
+                Melalui Website <strong>SATU</strong> kita membangun kesadaran dan kesiapsiagaan menghadapi bencana.
                 <br />
                 Setiap langkah persiapan hari ini menjadi perlindungan bagi kehidupan di masa depan
               </p>

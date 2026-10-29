@@ -32,7 +32,7 @@ function assertEqual<T>(actual: T, expected: T, msg?: string) {
 }
 
 console.log("\n=======================================================");
-console.log("  SIGAP AI — Automated Quality & Verification Suite");
+console.log("  SATU AI — Automated Quality & Verification Suite");
 console.log("=======================================================\n");
 
 // ─── 1. SCORING ENGINE TESTS ────────────────────────────────

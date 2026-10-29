@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporkan Kondisi - Aplikasi Tanggap Darurat</title>
+
+    <!-- Google Fonts: Poppins untuk kemiripan tipografi 100% dengan desain Figma -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet JS & CSS untuk Peta Interaktif pada Langkah 3 (Lokasi Kejadian) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        stepAmber: '#FAAC05',
+                        stepTeal: '#00A8B8',
+                        stepGrayBg: '#F2F4F7',
+                        stepGrayText: '#667085',
+                        btnYellow: '#FFA800',
+                        btnYellowHover: '#E89800',
+                        navyDark: '#0B1C26',
+                        locCardBg: '#DCF1F4',
+                        locCardBorder: '#84C5CE',
+                        checkBlue: '#005AE0',
+                        checkUnchecked: '#CBD5E0',
+                        successCyan: '#00C4DF',
+                        successRing: '#E1F6FA',
+                    },
+                    boxShadow: {
+                        'summary-card': '0 6px 26px rgba(0, 0, 0, 0.065)',
+                        'id-card': '0 4px 20px rgba(0, 0, 0, 0.06)',
+                        'qr-card': '0 8px 28px rgba(11, 28, 38, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #FFFFFF;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Reaksi murni selayaknya tombol ditekan (tanpa popup/toast) */
+        .btn-press {
+            transition: transform 0.14s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.14s ease, border-color 0.14s ease;
+        }
+        .btn-press:active {
+            transform: scale(0.975);
+        }
+
+        /* Tampilan peta Leaflet bersih menyerupai ilustrasi desain */
+        .leaflet-control-attribution {
+            font-size: 8px !important;
+            background: rgba(255, 255, 255, 0.55) !important;
+        }
+        .leaflet-tile-pane {
+            filter: saturate(1.06) contrast(0.97) brightness(1.02);
+        }
+    </style>
+</head>
+<body class="text-[#111111] antialiased selection:bg-stepTeal selection:text-white min-h-screen flex flex-col bg-white">
+
+    <!-- CONTAINER UTAMA (Responsif Mobile & Desktop, 100% Murni Sesuai Desain) -->
+    <div class="w-full max-w-[480px] lg:max-w-xl mx-auto bg-white min-h-screen flex flex-col justify-between px-6 pt-7 pb-8 relative">
+
+        <!-- ================================================================== -->
+        <!-- BAGIAN ATAS: HEADER + STEPPER + KONTEN TIAP STEP (1 S/D 5)         -->
+        <!-- ================================================================== -->
+        <div id="wizardTopContainer" class="flex-1 flex flex-col">
+
+            <!-- 1. HEADER: Tombol Back Bulat + Judul "Laporkan Kondisi" -->
+            <header id="wizardHeader" class="flex items-center gap-3.5 mb-7">
+                <button type="button" onclick="prevStep()" aria-label="Kembali" class="btn-press w-[40px] h-[40px] rounded-full bg-[#ECEFF1] hover:bg-[#E2E6E9] flex items-center justify-center text-[#1E232C] focus:outline-none">
+                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+                <h1 class="text-[20px] font-bold text-[#0F1E26] tracking-tight">
+                    Laporkan Kondisi
+                </h1>
+            </header>
+
+            <!-- 2. INDIKATOR PROGRESS STEPPER (Otomatis menyesuaikan 1-2-3-4 dan 2-3-4-5 persis gambar) -->
+            <div id="stepperContainer" class="flex items-center justify-between mb-8" aria-label="Tahapan Pelaporan">
+                <!-- Slot 1 -->
+                <button type="button" onclick="jumpToSlot(0)" id="slotCircle0" class="btn-press w-[30px] h-[30px] rounded-full flex items-center justify-center text-[13px] font-medium flex-shrink-0 focus:outline-none">
+                    1
+                </button>
+                <!-- Bar 1 -->
+                <div class="flex-1 h-[4px] mx-2.5 rounded-full bg-[#F2F4F7] overflow-hidden">
+                    <div id="slotBar0" class="h-full rounded-full transition-all duration-300" style="width: 50%; background-color: #FAAC05;"></div>
+                </div>
+
+                <!-- Slot 2 -->
+                <button type="button" onclick="jumpToSlot(1)" id="slotCircle1" class="btn-press w-[30px] h-[30px] rounded-full flex items-center justify-center text-[13px] font-medium flex-shrink-0 focus:outline-none">
+                    2
+                </button>
+                <!-- Bar 2 -->
+                <div class="flex-1 h-[4px] mx-2.5 rounded-full bg-[#F2F4F7] overflow-hidden">
+                    <div id="slotBar1" class="h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                </div>
+
+                <!-- Slot 3 -->
+                <button type="button" onclick="jumpToSlot(2)" id="slotCircle2" class="btn-press w-[30px] h-[30px] rounded-full flex items-center justify-center text-[13px] font-medium flex-shrink-0 focus:outline-none">
+                    3
+                </button>
+                <!-- Bar 3 -->
+                <div class="flex-1 h-[4px] mx-2.5 rounded-full bg-[#F2F4F7] overflow-hidden">
+                    <div id="slotBar2" class="h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                </div>
+
+                <!-- Slot 4 -->
+                <button type="button" onclick="jumpToSlot(3)" id="slotCircle3" class="btn-press w-[30px] h-[30px] rounded-full flex items-center justify-center text-[13px] font-medium flex-shrink-0 focus:outline-none">
+                    4
+                </button>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- STEP 1: DATA PELAPOR (Gambar 1)                                -->
+            <!-- ============================================================== -->
+            <section id="stepView1" class="flex-1 flex flex-col">
+                <h2 class="text-[24px] font-bold text-[#0F172A] tracking-tight mb-2.5">
+                    Data Pelapor
+                </h2>
+                <p class="text-[14px] font-normal text-[#828282] leading-[1.55] mb-7">
+                    Informasi ini digunakan agar kami dapat menghubungi kamu jika diperlukan.
+                </p>
+
+                <div class="space-y-5">
+                    <!-- Field 1: Nama Lengkap -->
+                    <div>
+                        <label for="inputNama" class="block text-[14px] font-semibold text-[#1A1A1A] mb-2">
+                            Nama Lengkap
+                        </label>
+                        <input id="inputNama" type="text" value="El" placeholder="Masukkan nama lengkap" class="w-full h-[52px] rounded-[16px] border border-[#D5D8DE] px-4 text-[15px] text-[#5A6474] font-normal focus:outline-none focus:border-stepTeal transition" />
+                    </div>
+
+                    <!-- Field 2: Email -->
+                    <div>
+                        <label for="inputEmail" class="block text-[14px] font-semibold text-[#1A1A1A] mb-2">
+                            Email
+                        </label>
+                        <input id="inputEmail" type="email" value="el@gmail.com" placeholder="Masukkan alamat email" class="w-full h-[52px] rounded-[16px] border border-[#D5D8DE] px-4 text-[15px] text-[#5A6474] font-normal focus:outline-none focus:border-stepTeal transition" />
+                    </div>
+
+                    <!-- Field 3: Nomor Telepon -->
+                    <div>
+                        <label for="inputTelepon" class="block text-[14px] font-semibold text-[#1A1A1A] mb-2">
+                            Nomor Telepon
+                        </label>
+                        <input id="inputTelepon" type="tel" value="08975132518162" placeholder="Masukkan nomor telepon" class="w-full h-[52px] rounded-[16px] border border-[#D5D8DE] px-4 text-[15px] text-[#5A6474] font-normal focus:outline-none focus:border-stepTeal transition" />
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================== -->
+            <!-- STEP 2: DETAIL LAPORAN (Gambar 2)                              -->
+            <!-- ============================================================== -->
+            <section id="stepView2" class="hidden flex-1 flex-col">
+                <h2 class="text-[24px] font-bold text-[#0F172A] tracking-tight mb-6">
+                    Detail Laporan
+                </h2>
+
+                <!-- Field 1: Apa yang terjadi? -->
+                <div class="mb-5">
+                    <label for="inputKejadian" class="block text-[14px] font-semibold text-[#1A1A1A] mb-2">
+                        Apa yang terjadi?
+                    </label>
+                    <textarea id="inputKejadian" rows="4" placeholder="Jelaskan apa yang terjadi" class="w-full h-[126px] rounded-[14px] border border-[#C6C6C8] p-4 text-[14.5px] text-[#1A1A1A] placeholder-[#8E8E93] font-normal resize-none focus:outline-none focus:border-stepTeal transition"></textarea>
+                </div>
+
+                <!-- Field 2: Kategori (Custom Select / Button Dropdown) -->
+                <div class="mb-6 relative">
+                    <label class="block text-[14px] font-semibold text-[#1A1A1A] mb-2">
+                        Kategori
+                    </label>
+                    <button type="button" id="kategoriDropdownBtn" onclick="toggleKategoriMenu()" class="btn-press w-full h-[50px] rounded-[14px] border border-[#C6C6C8] bg-white px-4 flex items-center justify-between text-left focus:outline-none focus:border-stepTeal">
+                        <span id="selectedKategoriText" class="text-[14.5px] text-[#8E8E93] font-normal">Pilih Kategori</span>
+                        <svg class="w-5 h-5 text-[#555555] transition-transform duration-200" id="kategoriChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <!-- Menu Pilihan Kategori -->
+                    <div id="kategoriMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-[14px] shadow-lg border border-gray-200 py-1.5 z-30">
+                        <button type="button" onclick="selectKategori('Banjir')" class="w-full px-4 py-2.5 text-left text-[14px] text-[#1A1A1A] hover:bg-gray-50">Banjir</button>
+                        <button type="button" onclick="selectKategori('Kebakaran')" class="w-full px-4 py-2.5 text-left text-[14px] text-[#1A1A1A] hover:bg-gray-50">Kebakaran</button>
+                        <button type="button" onclick="selectKategori('Tanah Longsor')" class="w-full px-4 py-2.5 text-left text-[14px] text-[#1A1A1A] hover:bg-gray-50">Tanah Longsor</button>
+                        <button type="button" onclick="selectKategori('Darurat Medis')" class="w-full px-4 py-2.5 text-left text-[#14px] text-[#1A1A1A] hover:bg-gray-50">Darurat Medis</button>
+                    </div>
+                </div>
+
+                <!-- Field 3: Kebutuhan (5 Baris Button Checkbox Sesuai Desain) -->
+                <div>
+                    <span class="block text-[14px] font-semibold text-[#1A1A1A] mb-3.5">
+                        Kebutuhan
+                    </span>
+                    <div class="space-y-3.5">
+                        <!-- Opsi 1: Makanan (Default Checked Biru Sesuai Gambar) -->
+                        <button type="button" onclick="toggleNeedItem(this)" data-need="Makanan" data-checked="true" class="need-item-btn btn-press flex items-center gap-3.5 w-full text-left focus:outline-none">
+                            <span class="need-box w-[22px] h-[22px] rounded-[6px] bg-checkBlue flex items-center justify-center text-white transition-colors">
+                                <svg class="need-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="need-label text-[14.5px] font-normal text-[#1E293B]">Makanan</span>
+                        </button>
+
+                        <!-- Opsi 2: Air Bersih -->
+                        <button type="button" onclick="toggleNeedItem(this)" data-need="Air bersih" data-checked="false" class="need-item-btn btn-press flex items-center gap-3.5 w-full text-left focus:outline-none">
+                            <span class="need-box w-[22px] h-[22px] rounded-[6px] bg-checkUnchecked flex items-center justify-center text-white transition-colors">
+                                <svg class="need-icon w-3.5 h-3.5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="need-label text-[14.5px] font-normal text-[#64748B]">Air Bersih</span>
+                        </button>
+
+                        <!-- Opsi 3: Obat-obatan -->
+                        <button type="button" onclick="toggleNeedItem(this)" data-need="Obat-obatan" data-checked="false" class="need-item-btn btn-press flex items-center gap-3.5 w-full text-left focus:outline-none">
+                            <span class="need-box w-[22px] h-[22px] rounded-[6px] bg-checkUnchecked flex items-center justify-center text-white transition-colors">
+                                <svg class="need-icon w-3.5 h-3.5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="need-label text-[14.5px] font-normal text-[#64748B]">Obat-obatan</span>
+                        </button>
+
+                        <!-- Opsi 4: Tempat Tinggal -->
+                        <button type="button" onclick="toggleNeedItem(this)" data-need="Tempat Tinggal" data-checked="false" class="need-item-btn btn-press flex items-center gap-3.5 w-full text-left focus:outline-none">
+                            <span class="need-box w-[22px] h-[22px] rounded-[6px] bg-checkUnchecked flex items-center justify-center text-white transition-colors">
+                                <svg class="need-icon w-3.5 h-3.5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="need-label text-[14.5px] font-normal text-[#64748B]">Tempat Tinggal</span>
+                        </button>
+
+                        <!-- Opsi 5: Lainnya -->
+                        <button type="button" onclick="toggleNeedItem(this)" data-need="Lainnya" data-checked="false" class="need-item-btn btn-press flex items-center gap-3.5 w-full text-left focus:outline-none">
+                            <span class="need-box w-[22px] h-[22px] rounded-[6px] bg-checkUnchecked flex items-center justify-center text-white transition-colors">
+                                <svg class="need-icon w-3.5 h-3.5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="need-label text-[14.5px] font-normal text-[#64748B]">Lainnya</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================== -->
+            <!-- STEP 3: LOKASI KEJADIAN (Gambar 3)                             -->
+            <!-- ============================================================== -->
+            <section id="stepView3" class="hidden flex-1 flex-col">
+                <h2 class="text-[24px] font-bold text-[#0F172A] tracking-tight mb-5">
+                    Lokasi Kejadian
+                </h2>
+
+                <!-- Kartu Lokasi Saat Ini -->
+                <div class="w-full rounded-[16px] bg-locCardBg border border-locCardBorder px-5 py-4 mb-3.5">
+                    <span class="block text-[11.5px] font-bold uppercase tracking-wide text-stepTeal">
+                        LOKASI SAAT INI
+                    </span>
+                    <p id="currentLocText" class="text-[14.5px] font-medium text-[#1A1A1A] mt-1">
+                        Jl. Kayu Putih No. 12, Jakarta Timur
+                    </p>
+                </div>
+
+                <!-- Button Teal: Gunakan lokasi saya -->
+                <button type="button" onclick="recenterIncidentMap()" class="btn-press w-full h-[50px] rounded-[14px] bg-stepTeal hover:bg-[#0095a3] text-white text-[14.5px] font-medium flex items-center justify-center mb-5 focus:outline-none">
+                    Gunakan lokasi saya
+                </button>
+
+                <!-- Label Pemisah Tengah -->
+                <p class="text-center text-[12.5px] font-normal text-[#7A7A7A] mb-3.5">
+                    Pilih lokasi manual
+                </p>
+
+                <!-- Search Bar Lokasi Manual -->
+                <div class="w-full h-[50px] rounded-[16px] bg-[#F7F7F7] border border-[#8E8E93] px-4 flex items-center gap-3 mb-4 focus-within:bg-white focus-within:border-stepTeal transition">
+                    <button type="button" onclick="document.getElementById('inputCariLokasi').focus()" aria-label="Cari Lokasi" class="btn-press text-[#6E6E73] focus:outline-none">
+                        <svg class="w-[20px] h-[20px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                    <input id="inputCariLokasi" type="text" oninput="updateManualAddress(this.value)" placeholder="Cari lokasi atau jenis bantuan" class="w-full bg-transparent text-[13px] text-[#1A1A1A] placeholder-[#3C3C43] font-normal focus:outline-none" />
+                </div>
+
+                <!-- Peta Interaktif Leaflet JS (Persis Ilustrasi Sungai & Blok Jalan) -->
+                <div class="w-full h-[215px] rounded-[18px] overflow-hidden border border-gray-100 bg-[#EBF0F2] relative z-10">
+                    <div id="incidentLeafletMap" class="w-full h-full"></div>
+                </div>
+            </section>
+
+            <!-- ============================================================== -->
+            <!-- STEP 4: INFORMASI TAMBAHAN (Gambar 4)                          -->
+            <!-- ============================================================== -->
+            <section id="stepView4" class="hidden flex-1 flex-col">
+                <h2 class="text-[24px] font-bold text-[#0F172A] tracking-tight mb-1.5">
+                    Informasi Tambahan
+                </h2>
+                <p class="text-[13.5px] font-normal text-[#828282] mb-6">
+                    Tambahkan informasi lain jika diperlukan
+                </p>
+
+                <!-- Input File Tersembunyi untuk Upload Foto Asli -->
+                <input id="photoFileInput" type="file" accept="image/*" class="hidden" onchange="handlePhotoSelected(event)" />
+
+                <!-- Kotak Dropzone Dashed Abu-abu Muda -->
+                <button type="button" onclick="document.getElementById('photoFileInput').click()" class="btn-press w-full h-[142px] rounded-[16px] bg-[#F2F2F2] border-[1.5px] border-dashed border-[#C6C6C8] flex flex-col items-center justify-center gap-2.5 mb-4 overflow-hidden relative focus:outline-none">
+                    <!-- Placeholder Default -->
+                    <div id="photoPlaceholder" class="flex flex-col items-center justify-center gap-2">
+                        <svg class="w-[36px] h-[36px] text-[#757575]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M13 3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-7"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <path d="M21 15l-5-5L5 21"/>
+                            <path d="M19 3v6M16 6h6"/>
+                        </svg>
+                        <span class="text-[13.5px] font-normal text-[#686868]">
+                            Belum ada foto ditambahkan
+                        </span>
+                    </div>
+                    <!-- Preview Foto Jika User Memilih Gambar -->
+                    <img id="photoPreviewImg" src="" alt="Preview Foto Kejadian" class="hidden w-full h-full object-cover" />
+                </button>
+
+                <!-- Tombol Outline: Tambah Foto -->
+                <button type="button" onclick="document.getElementById('photoFileInput').click()" class="btn-press w-full h-[46px] rounded-[14px] bg-white border border-[#C6C6C8] hover:border-[#8E8E93] flex items-center justify-center gap-2.5 mb-6 focus:outline-none">
+                    <svg class="w-[19px] h-[19px] text-[#1A1A1A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    <span class="text-[13.5px] font-semibold text-[#1A1A1A]">
+                        Tambah Foto
+                    </span>
+                </button>
+
+                <!-- Catatan Tambahan -->
+                <div class="mb-6">
+                    <label for="inputCatatan" class="block text-[14px] font-semibold text-[#1A1A1A] mb-2">
+                        Catatan
+                    </label>
+                    <textarea id="inputCatatan" rows="4" placeholder="Informasi tambahan ..." class="w-full h-[145px] rounded-[16px] bg-[#F2F2F2] border border-[#C6C6C8] p-4 text-[14px] text-[#1A1A1A] placeholder-[#7A7A7A] font-normal resize-none focus:outline-none focus:bg-white focus:border-stepTeal transition"></textarea>
+                </div>
+
+                <p class="text-center text-[13px] font-normal text-[#828282]">
+                    Langkah ini &nbsp;bersifat opsional
+                </p>
+            </section>
+
+            <!-- ============================================================== -->
+            <!-- STEP 5: KONFIRMASI LAPORAN (Gambar 5)                          -->
+            <!-- ============================================================== -->
+            <section id="stepView5" class="hidden flex-1 flex-col">
+                <h2 class="text-[24px] font-bold text-[#0F172A] tracking-tight mb-1.5">
+                    Konfirmasi Laporan
+                </h2>
+                <p class="text-[13.5px] font-normal text-[#828282] mb-6">
+                    Tambahkan informasi lain jika diperlukan
+                </p>
+
+                <!-- Kartu Putih Ringkasan Laporan -->
+                <div class="w-full bg-white rounded-[22px] p-5 shadow-summary-card border border-gray-100">
+                    <span class="block text-[13px] font-semibold uppercase tracking-wide text-[#757575] mb-3.5">
+                        RINGKASAN LAPORAN
+                    </span>
+
+                    <div class="divide-y divide-[#D8D8D8]">
+                        <!-- Baris 1: Apa yang terjadi -->
+                        <div class="py-3 flex items-start justify-between gap-4">
+                            <span class="text-[12.5px] font-normal text-[#757575] flex-shrink-0">
+                                Apa yang terjadi
+                            </span>
+                            <span id="summaryKejadian" class="text-[12.5px] font-semibold text-[#1A1A1A] text-right leading-relaxed max-w-[215px]">
+                                Air mulai naik memasuki rumah warga di RT 03.
+                            </span>
+                        </div>
+
+                        <!-- Baris 2: Kategori -->
+                        <div class="py-3.5 flex items-center justify-between gap-4">
+                            <span class="text-[12.5px] font-normal text-[#757575]">
+                                Kategori
+                            </span>
+                            <span id="summaryKategori" class="text-[12.5px] font-semibold text-[#1A1A1A] text-right">
+                                Banjir
+                            </span>
+                        </div>
+
+                        <!-- Baris 3: Kebutuhan -->
+                        <div class="py-3.5 flex items-center justify-between gap-4">
+                            <span class="text-[12.5px] font-normal text-[#757575]">
+                                Kebutuhan
+                            </span>
+                            <span id="summaryKebutuhan" class="text-[12.5px] font-semibold text-[#1A1A1A] text-right">
+                                Makanan, Air bersih
+                            </span>
+                        </div>
+
+                        <!-- Baris 4: Lokasi -->
+                        <div class="py-3.5 flex items-center justify-between gap-4">
+                            <span class="text-[12.5px] font-normal text-[#757575]">
+                                Lokasi
+                            </span>
+                            <span id="summaryLokasi" class="text-[12.5px] font-semibold text-[#1A1A1A] text-right">
+                                Jl. Kayu Putih No. 12, Jakarta Timur
+                            </span>
+                        </div>
+
+                        <!-- Baris 5: Nama -->
+                        <div class="py-3.5 flex items-center justify-between gap-4">
+                            <span class="text-[12.5px] font-normal text-[#757575]">
+                                Nama
+                            </span>
+                            <span id="summaryNama" class="text-[12.5px] font-semibold text-[#1A1A1A] text-right">
+                                Andi Pratama
+                            </span>
+                        </div>
+
+                        <!-- Baris 6: Nomor -->
+                        <div class="pt-3.5 pb-1 flex items-center justify-between gap-4">
+                            <span class="text-[12.5px] font-normal text-[#757575]">
+                                Nomor
+                            </span>
+                            <span id="summaryNomor" class="text-[12.5px] font-semibold text-[#1A1A1A] text-right">
+                                0812 2567 7865
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- TOMBOL UTAMA BAWAH UNTUK STEP 1 S/D 5 ("Lanjut" / "Kirim Laporan") -->
+        <div id="wizardBottomBar" class="pt-6 mt-auto">
+            <button type="button" id="primaryWizardBtn" onclick="nextStep()" class="btn-press w-full h-[56px] rounded-[18px] bg-btnYellow hover:bg-btnYellowHover text-[#111111] text-[16px] font-bold tracking-tight flex items-center justify-center focus:outline-none">
+                Lanjut
+            </button>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- STEP 6: HALAMAN LAPORAN TERKIRIM + QR CODE VALIDASI RELAWAN        -->
+        <!-- ================================================================== -->
+        <section id="stepView6" class="hidden flex-1 flex-col justify-between pt-4">
+            
+            <div class="flex flex-col items-center text-center">
+                <!-- Lingkaran Sukses Cyan Berlapis Sesuai Gambar 6 -->
+                <div class="w-[128px] h-[128px] rounded-full bg-successRing flex items-center justify-center mb-6">
+                    <div class="w-[92px] h-[92px] rounded-full bg-successCyan flex items-center justify-center text-white shadow-sm">
+                        <svg class="w-[46px] h-[46px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Judul & Subjudul Laporan Terkirim -->
+                <h1 class="text-[24px] font-bold text-[#111111] tracking-tight mb-2.5">
+                    Laporan Terkirim
+                </h1>
+                <p class="text-[13.5px] font-normal text-[#828282] leading-[1.6] max-w-[330px] mb-6">
+                    Terima kasih atas informasi yang kamu berikan Laporan kamu sudah diterima dan akan segera ditinjau.
+                </p>
+
+                <!-- Kartu ID Laporan (#SATU-00125) Persis Gambar 6 -->
+                <div class="w-full bg-white rounded-[18px] px-5 py-4 shadow-id-card border border-gray-100/90 flex items-center justify-between mb-5">
+                    <span class="text-[13px] font-normal text-[#757575]">
+                        ID Laporan
+                    </span>
+                    <span class="text-[15px] font-bold text-[#0F1E26] tracking-tight">
+                        #SATU-00125
+                    </span>
+                </div>
+
+                <!-- KARTU QR CODE VALIDASI RELAWAN (Di Bawah ID Laporan Sesuai Instruksi) -->
+                <div class="w-full bg-white rounded-[22px] p-5 shadow-qr-card border border-[#E6F4F6] flex flex-col items-center">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F8FA] text-stepTeal text-[11px] font-semibold tracking-wide uppercase mb-3">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <polyline points="9 12 11 14 15 10"/>
+                        </svg>
+                        <span>QR Validasi Relawan</span>
+                    </div>
+
+                    <!-- Bingkai QR Code SVG Presisi Tinggi -->
+                    <div class="relative p-3.5 bg-white rounded-[18px] border-2 border-[#0B1C26]/10 shadow-xs mb-3">
+                        <!-- Sudut Aksen Scanner -->
+                        <span class="absolute -top-1 -left-1 w-4 h-4 border-t-[3px] border-l-[3px] border-stepTeal rounded-tl-md"></span>
+                        <span class="absolute -top-1 -right-1 w-4 h-4 border-t-[3px] border-r-[3px] border-stepTeal rounded-tr-md"></span>
+                        <span class="absolute -bottom-1 -left-1 w-4 h-4 border-b-[3px] border-l-[3px] border-stepTeal rounded-bl-md"></span>
+                        <span class="absolute -bottom-1 -right-1 w-4 h-4 border-b-[3px] border-r-[3px] border-stepTeal rounded-br-md"></span>
+
+                        <!-- SVG QR Code (#SATU-00125) -->
+                        <svg class="w-[148px] h-[148px] text-[#0B1C26]" viewBox="0 0 29 29" fill="currentColor" shape-rendering="crispEdges" aria-label="QR Code Laporan #SATU-00125">
+                            <!-- Finder Pattern Kiri Atas -->
+                            <path d="M2,2 h7 v7 h-7 z M3,3 v5 h5 v-5 z M4,4 h3 v3 h-3 z"/>
+                            <!-- Finder Pattern Kanan Atas -->
+                            <path d="M20,2 h7 v7 h-7 z M21,3 v5 h5 v-5 z M22,4 h3 v3 h-3 z"/>
+                            <!-- Finder Pattern Kiri Bawah -->
+                            <path d="M2,20 h7 v7 h-7 z M3,21 v5 h5 v-5 z M4,22 h3 v3 h-3 z"/>
+                            <!-- Alignment Pattern Kanan Bawah -->
+                            <path d="M20,20 h5 v5 h-5 z M21,21 v3 h3 v-3 z M22,22 h1 v1 h-1 z"/>
+
+                            <!-- Modul Data QR Code -->
+                            <rect x="10" y="2" width="2" height="1"/><rect x="13" y="2" width="1" height="2"/><rect x="16" y="2" width="2" height="1"/>
+                            <rect x="11" y="4" width="2" height="2"/><rect x="15" y="4" width="1" height="3"/><rect x="17" y="5" width="2" height="1"/>
+                            <rect x="10" y="7" width="1" height="2"/><rect x="13" y="7" width="2" height="1"/><rect x="17" y="7" width="1" height="2"/>
+                            <rect x="2" y="10" width="2" height="1"/><rect x="5" y="10" width="2" height="2"/><rect x="8" y="10" width="1" height="1"/>
+                            <rect x="10" y="10" width="2" height="1"/><rect x="18" y="10" width="2" height="2"/><rect x="22" y="10" width="2" height="1"/><rect x="25" y="10" width="2" height="2"/>
+                            <rect x="3" y="12" width="1" height="2"/><rect x="7" y="12" width="2" height="1"/><rect x="19" y="13" width="2" height="1"/><rect x="23" y="12" width="1" height="2"/>
+                            <rect x="2" y="15" width="2" height="2"/><rect x="5" y="14" width="1" height="3"/><rect x="8" y="15" width="2" height="1"/>
+                            <rect x="18" y="15" width="1" height="2"/><rect x="21" y="15" width="2" height="1"/><rect x="24" y="15" width="3" height="1"/>
+                            <rect x="3" y="18" width="3" height="1"/><rect x="7" y="17" width="1" height="2"/><rect x="10" y="18" width="2" height="1"/>
+                            <rect x="14" y="18" width="2" height="2"/><rect x="17" y="18" width="2" height="1"/><rect x="25" y="17" width="2" height="2"/>
+                            <rect x="10" y="20" width="2" height="2"/><rect x="13" y="21" width="2" height="1"/><rect x="16" y="20" width="2" height="3"/>
+                            <rect x="11" y="23" width="1" height="2"/><rect x="14" y="23" width="2" height="2"/><rect x="18" y="24" width="1" height="2"/>
+                            <rect x="10" y="26" width="3" height="1"/><rect x="15" y="26" width="2" height="1"/><rect x="26" y="21" width="1" height="3"/><rect x="25" y="25" width="2" height="2"/>
+
+                            <!-- Badge Tengah Mini Ikon Perisai Validasi -->
+                            <rect x="11.5" y="11.5" width="6" height="6" rx="1.2" fill="#FFFFFF"/>
+                            <rect x="12.2" y="12.2" width="4.6" height="4.6" rx="0.9" fill="#00A8B8"/>
+                            <path d="M13.3 14.5 l0.9 0.9 l1.6 -1.7" stroke="#FFFFFF" stroke-width="0.65" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+
+                    <p class="text-[12px] font-medium text-[#1A1A1A]">
+                        Tunjukkan QR Code ini kepada Relawan
+                    </p>
+                    <p class="text-[11px] font-normal text-[#828282] mt-0.5 max-w-[260px]">
+                        Relawan akan memindai kode di atas saat tiba di lokasi untuk memvalidasi laporanmu.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 2 Tombol Bawah Sesuai Gambar 6 ("Lihat Status Laporan" & "Kembalike Beranda") -->
+            <div class="space-y-3.5 pt-7 mt-auto">
+                <button type="button" onclick="goToStep(5)" class="btn-press w-full h-[54px] rounded-[18px] bg-navyDark hover:bg-[#142e3d] text-white text-[15px] font-semibold tracking-tight flex items-center justify-center focus:outline-none">
+                    Lihat Status Laporan
+                </button>
+
+                <button type="button" onclick="goToStep(1)" class="btn-press w-full h-[54px] rounded-[18px] bg-white hover:bg-gray-50 border border-[#555555] text-[#0F1E26] text-[15px] font-semibold tracking-tight flex items-center justify-center focus:outline-none">
+                    Kembalike Beranda
+                </button>
+            </div>
+
+        </section>
+
+    </div>
+
+    <script>
+        // ====================================================================
+        // 1. STATE LANGKAH FORMULIR (STEP 1 S/D 6) — TANPA TOAST / POPUP
+        // ====================================================================
+        let currentStep = 1;
+        let incidentMap = null;
+        let incidentMarker = null;
+        const defaultIncidentCoords = [-6.2242, 106.8662];
+
+        /**
+         * Konfigurasi Stepper persis 100% sesuai ke-5 tangkapan layar:
+         * - Step 1: Nomor [1, 2, 3, 4] -> 1 Amber, Bar1 setengah Amber
+         * - Step 2: Nomor [1, 2, 3, 4] -> 1 Teal, Bar1 penuh Teal, 2 Amber, Bar2 setengah Amber
+         * - Step 3: Nomor [1, 2, 3, 4] -> 1 Teal, Bar1 penuh Teal, 2 Teal, Bar2 penuh Teal, 3 Amber, Bar3 setengah Amber
+         * - Step 4: Nomor [2, 3, 4, 5] -> 2 Teal, Bar1 penuh Teal, 3 Teal, Bar2 penuh Teal, 4 Amber, Bar3 setengah Amber
+         * - Step 5: Nomor [2, 3, 4, 5] -> 2 Teal, Bar1 penuh Teal, 3 Teal, Bar2 penuh Teal, 4 Teal, Bar3 penuh Teal, 5 Teal
+         */
+        const stepperConfigs = {
+            1: {
+                nums: [1, 2, 3, 4],
+                states: ['amber', 'gray', 'gray', 'gray'],
+                bars: [
+                    { width: '52%', color: '#FAAC05' },
+                    { width: '0%',  color: 'transparent' },
+                    { width: '0%',  color: 'transparent' }
+                ]
+            },
+            2: {
+                nums: [1, 2, 3, 4],
+                states: ['teal', 'amber', 'gray', 'gray'],
+                bars: [
+                    { width: '100%', color: '#00A8B8' },
+                    { width: '52%',  color: '#FAAC05' },
+                    { width: '0%',   color: 'transparent' }
+                ]
+            },
+            3: {
+                nums: [1, 2, 3, 4],
+                states: ['teal', 'teal', 'amber', 'gray'],
+                bars: [
+                    { width: '100%', color: '#00A8B8' },
+                    { width: '100%', color: '#00A8B8' },
+                    { width: '52%',  color: '#FAAC05' }
+                ]
+            },
+            4: {
+                nums: [2, 3, 4, 5],
+                states: ['teal', 'teal', 'amber', 'gray'],
+                bars: [
+                    { width: '100%', color: '#00A8B8' },
+                    { width: '100%', color: '#00A8B8' },
+                    { width: '52%',  color: '#FAAC05' }
+                ]
+            },
+            5: {
+                nums: [2, 3, 4, 5],
+                states: ['teal', 'teal', 'teal', 'teal'],
+                bars: [
+                    { width: '100%', color: '#00A8B8' },
+                    { width: '100%', color: '#00A8B8' },
+                    { width: '100%', color: '#00A8B8' }
+                ]
+            }
+        };
+
+        function renderStepper(step) {
+            const cfg = stepperConfigs[step];
+            if (!cfg) return;
+
+            for (let i = 0; i < 4; i++) {
+                const circle = document.getElementById(`slotCircle${i}`);
+                circle.textContent = cfg.nums[i];
+                circle.className = 'btn-press w-[30px] h-[30px] rounded-full flex items-center justify-center text-[13px] font-medium flex-shrink-0 focus:outline-none transition-colors duration-200';
+
+                if (cfg.states[i] === 'amber') {
+                    circle.classList.add('bg-stepAmber', 'text-white');
+                } else if (cfg.states[i] === 'teal') {
+                    circle.classList.add('bg-stepTeal', 'text-white');
+                } else {
+                    circle.classList.add('bg-stepGrayBg', 'text-stepGrayText');
+                }
+            }
+
+            for (let j = 0; j < 3; j++) {
+                const bar = document.getElementById(`slotBar${j}`);
+                bar.style.width = cfg.bars[j].width;
+                bar.style.backgroundColor = cfg.bars[j].color;
+            }
+        }
+
+        function goToStep(targetStep) {
+            currentStep = targetStep;
+
+            const wizardTop = document.getElementById('wizardTopContainer');
+            const wizardBottom = document.getElementById('wizardBottomBar');
+            const step6 = document.getElementById('stepView6');
+
+            if (targetStep === 6) {
+                wizardTop.classList.add('hidden');
+                wizardBottom.classList.add('hidden');
+                step6.classList.remove('hidden');
+                step6.classList.add('flex');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            step6.classList.add('hidden');
+            step6.classList.remove('flex');
+            wizardTop.classList.remove('hidden');
+            wizardBottom.classList.remove('hidden');
+
+            for (let s = 1; s <= 5; s++) {
+                const sectionEl = document.getElementById(`stepView${s}`);
+                if (s === targetStep) {
+                    sectionEl.classList.remove('hidden');
+                    sectionEl.classList.add('flex');
+                } else {
+                    sectionEl.classList.add('hidden');
+                    sectionEl.classList.remove('flex');
+                }
+            }
+
+            // Update teks tombol utama bawah ("Lanjut" pada Step 1-4, "Kirim Laporan" pada Step 5)
+            const primaryBtn = document.getElementById('primaryWizardBtn');
+            primaryBtn.textContent = targetStep === 5 ? 'Kirim Laporan' : 'Lanjut';
+
+            renderStepper(targetStep);
+
+            // Jika masuk ke Step 3, inisialisasi / perbarui ukuran peta Leaflet
+            if (targetStep === 3) {
+                setTimeout(() => {
+                    initIncidentMap();
+                    if (incidentMap) {
+                        incidentMap.invalidateSize();
+                    }
+                }, 120);
+            }
+
+            // Jika masuk ke Step 5, sinkronkan ringkasan jika pengguna mengetik data baru
+            if (targetStep === 5) {
+                syncSummaryData();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function nextStep() {
+            if (currentStep < 6) {
+                goToStep(currentStep + 1);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1 && currentStep <= 5) {
+                goToStep(currentStep - 1);
+            }
+        }
+
+        function jumpToSlot(slotIndex) {
+            const cfg = stepperConfigs[currentStep];
+            if (!cfg) return;
+            const targetStepNumber = cfg.nums[slotIndex];
+            goToStep(targetStepNumber);
+        }
+
+        // ====================================================================
+        // 2. INTERAKSI STEP 2 (DROPDOWN KATEGORI & CHECKBOX KEBUTUHAN)
+        // ====================================================================
+        function toggleKategoriMenu() {
+            const menu = document.getElementById('kategoriMenu');
+            const chevron = document.getElementById('kategoriChevron');
+            menu.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function selectKategori(val) {
+            const textEl = document.getElementById('selectedKategoriText');
+            textEl.textContent = val;
+            textEl.classList.remove('text-[#8E8E93]');
+            textEl.classList.add('text-[#1A1A1A]');
+            document.getElementById('kategoriMenu').classList.add('hidden');
+            document.getElementById('kategoriChevron').classList.remove('rotate-180');
+        }
+
+        function toggleNeedItem(btn) {
+            const isChecked = btn.getAttribute('data-checked') === 'true';
+            const nextState = !isChecked;
+            btn.setAttribute('data-checked', String(nextState));
+
+            const box = btn.querySelector('.need-box');
+            const icon = btn.querySelector('.need-icon');
+            const label = btn.querySelector('.need-label');
+
+            if (nextState) {
+                box.classList.remove('bg-checkUnchecked');
+                box.classList.add('bg-checkBlue');
+                icon.classList.remove('hidden');
+                label.classList.remove('text-[#64748B]');
+                label.classList.add('text-[#1E293B]');
+            } else {
+                box.classList.remove('bg-checkBlue');
+                box.classList.add('bg-checkUnchecked');
+                icon.classList.add('hidden');
+                label.classList.remove('text-[#1E293B]');
+                label.classList.add('text-[#64748B]');
+            }
+        }
+
+        // ====================================================================
+        // 3. INTERAKSI STEP 3 (PETA LEAFLET LOKASI KEJADIAN)
+        // ====================================================================
+        function initIncidentMap() {
+            if (incidentMap) return;
+
+            incidentMap = L.map('incidentLeafletMap', {
+                center: defaultIncidentCoords,
+                zoom: 16,
+                zoomControl: false,
+                attributionControl: true
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(incidentMap);
+
+            const pinIcon = L.divIcon({
+                className: 'incident-pin',
+                html: `<div class="w-4 h-4 rounded-full bg-[#00A8B8] border-2 border-white shadow-md"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            incidentMarker = L.marker(defaultIncidentCoords, { icon: pinIcon }).addTo(incidentMap);
+
+            // Klik di peta untuk memindahkan titik lokasi secara langsung
+            incidentMap.on('click', (e) => {
+                incidentMarker.setLatLng(e.latlng);
+            });
+        }
+
+        function recenterIncidentMap() {
+            document.getElementById('currentLocText').textContent = 'Jl. Kayu Putih No. 12, Jakarta Timur';
+            if (incidentMap && incidentMarker) {
+                incidentMarker.setLatLng(defaultIncidentCoords);
+                incidentMap.flyTo(defaultIncidentCoords, 16, { duration: 0.6 });
+            }
+        }
+
+        function updateManualAddress(val) {
+            const clean = val.trim();
+            document.getElementById('currentLocText').textContent = clean ? clean : 'Jl. Kayu Putih No. 12, Jakarta Timur';
+        }
+
+        // ====================================================================
+        // 4. INTERAKSI STEP 4 (TAMBAH FOTO) & STEP 5 (SINKRONISASI RINGKASAN)
+        // ====================================================================
+        function handlePhotoSelected(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('photoPreviewImg');
+                const placeholder = document.getElementById('photoPlaceholder');
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function syncSummaryData() {
+            const kejadianVal = document.getElementById('inputKejadian').value.trim();
+            const kategoriVal = document.getElementById('selectedKategoriText').textContent.trim();
+            const lokasiVal = document.getElementById('currentLocText').textContent.trim();
+
+            if (kejadianVal) {
+                document.getElementById('summaryKejadian').textContent = kejadianVal;
+            }
+            if (kategoriVal && kategoriVal !== 'Pilih Kategori') {
+                document.getElementById('summaryKategori').textContent = kategoriVal;
+            }
+            if (lokasiVal) {
+                document.getElementById('summaryLokasi').textContent = lokasiVal;
+            }
+        }
+
+        // Inisialisasi tampilan awal pada Step 1
+        window.addEventListener('DOMContentLoaded', () => {
+            renderStepper(1);
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// SIGAP AI — Prisma schema
+// SATU AI — Prisma schema
 // PostgreSQL (Neon.tech / Supabase, free tier) dengan connection pooling.
 //
 // Migration:
@@ -19,11 +19,13 @@ datasource db {
 }
 
 enum Role {
+  USER
   RELAWAN
   ADMIN
 }
 
 enum SumberInput {
+  USER
   RELAWAN
   MANDIRI
 }
@@ -41,13 +43,36 @@ enum Instansi {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  username     String   @unique
+  id           String             @id @default(cuid())
+  username     String             @unique
+  email        String?            @unique
+  namaLengkap  String?
+  noHp         String?
   passwordHash String
-  role         Role
-  createdAt    DateTime @default(now())
+  role         Role               @default(USER)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @default(now()) @updatedAt
   kasus        Kasus[]
   posko        Posko[]
+  resetOtps    PasswordResetOtp[]
+  donasi       TransaksiDonasi[]
+  pendaftaranRelawan PendaftaranRelawan[]
+}
+
+model PasswordResetOtp {
+  id             String   @id @default(cuid())
+  email          String
+  otpHash        String   // SHA-256 (otp + pepper)
+  resetTokenHash String?  // SHA-256 (resetToken + pepper)
+  attempts       Int      @default(0) // Max 5 percobaan salah sebelum terkunci
+  expiresAt      DateTime
+  used           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model Kasus {
@@ -171,4 +196,99 @@ model GeocodeCache {
   lat       Float
   lng       Float
   createdAt DateTime @default(now())
+}
+
+// ── Modul Donasi Publik & Korban Bencana ───────────────────────
+
+model DonasiKampanye {
+  id                String            @id @default(cuid())
+  slug              String            @unique
+  judul             String
+  deskripsi         String?
+  targetDonasi      Int               // Target dana (Rupiah), e.g. 50000000
+  terkumpul         Int               @default(0) // Dana terkumpul (Rupiah), e.g. 24500000
+  jumlahDonatur     Int               @default(0) // Jumlah donatur terdaftar, e.g. 320
+  kategoriTag       Json?             // string[] tags: ["Makanan", "Air & Kebutuhan dasar", "Medis"]
+  alokasiDana       Json?             // string[] checklist alokasi dana
+  penyelenggara     String            @default("Yayasan Bantu Sesama")
+  penyelenggaraDesc String?           @default("Organisasi terverifikasi. Laporan penyaluran dana dipublikasikan secara transparan setiap tahap kegiatan")
+  terverifikasi     Boolean           @default(true)
+  aktif             Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  transaksi         TransaksiDonasi[]
+
+  @@index([slug])
+  @@index([aktif])
+}
+
+model TransaksiDonasi {
+  id               String         @id @default(cuid())
+  kodeDonasi       String         @unique // e.g. "#DONASI-49281"
+  kampanyeId       String
+  kampanye         DonasiKampanye @relation(fields: [kampanyeId], references: [id], onDelete: Cascade)
+  nominal          Int            // Nominal dalam Rupiah, e.g. 100000
+  metodePembayaran String         // "E_WALLET" | "VIRTUAL_ACCOUNT" | "BANK_TRANSFER"
+  subMetode        String?        // "GOPAY" | "OVO" | "DANA" | "BCA_VA" | "MANDIRI_VA" | "BRI_VA" | "MANUAL"
+  status           String         @default("MENUNGGU_PEMBAYARAN") // "MENUNGGU_PEMBAYARAN" | "BERHASIL" | "DIBATALKAN"
+  nomorVa          String?
+  qrPayload        String?
+  namaDonatur      String?        @default("Hamba Allah")
+  pesanDoa         String?
+  anonim           Boolean        @default(true)
+  userId           String?
+  user             User?          @relation(fields: [userId], references: [id])
+  paidAt           DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([kampanyeId])
+  @@index([status])
+  @@index([userId])
+}
+
+// ── Modul Open Volunteer & Pendaftaran Relawan Lapangan ─────────
+
+model KegiatanRelawan {
+  id               String               @id @default(cuid())
+  slug             String               @unique
+  judul            String               // "Banjir Jakarta Timur"
+  tanggalRentang   String               // "8-12 Oktober 2026"
+  lokasi           String               // "Jakarta Timur"
+  alamatSpesifik   String?              @default("Jl. Melati No.5, Jakarta Timur")
+  kuotaTerisi      Int                  @default(0) // 24
+  kuotaMaksimal    Int                  @default(50) // 50
+  posisiDibutuhkan Json?                // ["Distribusi", "Logistik", "Dapur Umum"]
+  deskripsi        String               // "Kegiatan relawan untuk membantu distribusi bantuan..."
+  informasiTugas   String?              @default("Membantu distribusi paket bantuan kepada pengungsi di posko RW 05")
+  waktuKegiatan    String?              @default("06.00 - 18.00 WIB")
+  kontakKordinator String?              @default("08123425871667")
+  aktif            Boolean              @default(true)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  pendaftaran      PendaftaranRelawan[]
+
+  @@index([slug])
+  @@index([aktif])
+}
+
+model PendaftaranRelawan {
+  id             String          @id @default(cuid())
+  kegiatanId     String
+  kegiatan       KegiatanRelawan @relation(fields: [kegiatanId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?           @relation(fields: [userId], references: [id])
+  namaLengkap    String
+  email          String
+  nomorTelepon   String
+  kemampuan      String?
+  pengalaman     String?
+  posisi         String          // "Distribusi" | "Logistik" | "Dapur Umum"
+  status         String          @default("TERDAFTAR") // "TERDAFTAR" | "DISETUJUI" | "SELESAI"
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([kegiatanId])
+  @@index([userId])
+  @@index([status])
 }

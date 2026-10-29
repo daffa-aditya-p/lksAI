@@ -4,10 +4,10 @@
    ========================================================== */
 .sg {
   --navy: #0b1f4b;
-  --teal: #00a9b7;
-  --teal-dark: #008c99;
-  --orange: #ffa90a;
-  --orange-dark: #f09500;
+  --teal: #15B2C6;
+  --teal-dark: #1294A8;
+  --orange: #FFA800;
+  --orange-dark: #E69700;
   --ink-soft: #6b7592;
   --bg: #f8f6f6;
   --red: #e11d48;
@@ -47,7 +47,16 @@
   align-items: center;
   justify-content: space-between;
 }
-.sg-nav-links { display: flex; align-items: center; gap: 28px; font-size: 12.5px; font-weight: 500; }
+.sg-nav-links { display: none; }
+@media (min-width: 769px) {
+  .sg-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+}
 .sg-nav-links a { position: relative; padding-bottom: 4px; transition: color .2s; }
 .sg-nav-links a:hover { color: var(--teal-dark); }
 .sg-nav-links a.is-active::after {
@@ -294,8 +303,8 @@
 
 /* ---------- Responsif ---------- */
 @media (max-width: 900px) {
-  .sg-nav-links { gap: 14px; font-size: 11.5px; }
-  .sg-nav-links .hide-md { display: none; }
+  
+  
   .sg-hero-photo { left: 0; opacity: .35; }
   .sg-hero-kabut {
     left: 0;
@@ -342,7 +351,7 @@
     left: 6%;
   }
   .sg-feat-cards { grid-template-columns: 1fr; }
-  .sg-nav-links a:not(.sg-btn-orange):not(.keep) { display: none; }
+  
   .sg-map { min-height: 240px; }
 }
 @media (prefers-reduced-motion: reduce) {

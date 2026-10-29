@@ -45,7 +45,7 @@ export async function geocodeAlamat(
       url.searchParams.set("accept-language", "id");
 
       const res = await fetch(url.toString(), {
-        headers: { "User-Agent": "SIGAP-AI/1.0 (koordinasi-posko-bencana)" },
+        headers: { "User-Agent": "SATU-AI/1.0 (koordinasi-posko-bencana)" },
       });
 
       if (res.status === 429) {

@@ -6,7 +6,7 @@
  * Data TIDAK pernah keluar dari browser sebelum sync berhasil.
  */
 
-const DB_NAME = "sigap-offline";
+const DB_NAME = "satu-offline";
 const DB_VER = 1;
 const STORE = "pending_intake";
 

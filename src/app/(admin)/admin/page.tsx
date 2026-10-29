@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import AdminClient from "./AdminClient";
 import type { UserRow } from "@/components/admin/UserPanel";
 
-export const metadata = { title: "Dashboard — SIGAP AI" };
+export const metadata = { title: "Dashboard — SATU AI" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
