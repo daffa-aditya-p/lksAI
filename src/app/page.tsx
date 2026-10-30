@@ -295,7 +295,7 @@ export default async function Home() {
             <div className="sg-footer-about">
               <h2>ABOUT COMPANY</h2>
               <p>
-                Kami adalah pengembang website dari SMK Negeri Mandiri 26 Jakarta yang mengikuti perlombaan ITECHNO CUP 2026.
+                Kami adalah pengembang website dari SMK Negeri Mandiri 26 Jakarta yang mengikuti perlombaan sdgs
               </p>
               <div className="sg-socials" aria-label="Media sosial">
                 <a href="#twitter" aria-label="Twitter"><i className="fa-brands fa-twitter" /></a>
@@ -305,7 +305,7 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <p className="sg-copy">Copyright © 2026 Walau Hebat</p>
+          <p className="sg-copy">Copyright © 2026 Bismilah Aman</p>
         </div>
       </footer>
     </main>
