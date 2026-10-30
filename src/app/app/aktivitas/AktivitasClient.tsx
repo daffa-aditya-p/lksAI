@@ -165,9 +165,9 @@ export default function AktivitasClient({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-800">
-      {/* WRAPPER KONTEN (Format Mobile Centered) */}
-      <div className="mx-auto max-w-md bg-white min-h-screen sm:min-h-[92vh] sm:my-4 sm:rounded-[32px] sm:shadow-2xl sm:border sm:border-slate-100 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-appBg font-sans text-slate-800 flex flex-col items-center">
+      {/* WRAPPER KONTEN */}
+      <div className="w-full max-w-[480px] lg:max-w-2xl bg-white min-h-screen border-x border-gray-100/80 shadow-sm flex flex-col relative">
 
         {/* HEADER BAR */}
         <header className="px-5 pt-6 pb-2 bg-white">
@@ -219,7 +219,7 @@ export default function AktivitasClient({
         </nav>
 
         {/* MAIN BODY CONTAINER */}
-        <main className="flex-1 px-5 py-4 flex flex-col">
+        <main className="flex-1 px-5 py-4 pb-28 flex flex-col">
 
           {/* ============================================================== */}
           {/* TAB 1: LAPORAN SAYA (Layar 1 Desain)                           */}
@@ -382,44 +382,49 @@ export default function AktivitasClient({
         </main>
 
         {/* BOTTOM NAVIGATION BAR */}
-        <nav className="border-t border-slate-100 bg-white/95 backdrop-blur-md px-6 py-2.5 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => router.push("/app")}
-            className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-          >
-            <Home size={19} />
-            <span className="text-[10px] font-medium">Beranda</span>
-          </button>
+        <nav
+          aria-label="Navigasi Utama"
+          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] lg:max-w-2xl bg-white rounded-t-[24px] shadow-bottom-nav border-t border-gray-100 px-6 py-2.5 z-40"
+        >
+          <div className="grid grid-cols-4 items-center">
+            <button
+              type="button"
+              onClick={() => router.push("/app")}
+              className="flex flex-col items-center justify-center py-1 gap-1 text-[#1A1A1A] hover:text-[#00A9B5] cursor-pointer"
+            >
+              <Home size={20} />
+              <span className="text-[9.5px]">Beranda</span>
+            </button>
 
-          <button
-            type="button"
-            className="flex flex-col items-center gap-1 text-[#00A9B5] cursor-pointer"
-          >
-            <div className="relative">
-              <Calendar size={19} />
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#FFA800]" />
-            </div>
-            <span className="text-[10px] font-bold">Aktivitas</span>
-          </button>
+            <button
+              type="button"
+              className="flex flex-col items-center justify-center py-1 gap-1 text-[#00A9B5] font-bold cursor-pointer"
+            >
+              <div className="relative">
+                <Calendar size={20} />
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#FFA800]" />
+              </div>
+              <span className="text-[9.5px]">Aktivitas</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => router.push("/app/notifikasi")}
-            className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-          >
-            <Bell size={19} />
-            <span className="text-[10px] font-medium">Notifikasi</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => router.push("/app/notifikasi")}
+              className="flex flex-col items-center justify-center py-1 gap-1 text-[#1A1A1A] hover:text-[#00A9B5] cursor-pointer"
+            >
+              <Bell size={20} />
+              <span className="text-[9.5px]">Notifikasi</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => router.push("/app/profil")}
-            className="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-          >
-            <User size={19} />
-            <span className="text-[10px] font-medium">Profil</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => router.push("/app/profil")}
+              className="flex flex-col items-center justify-center py-1 gap-1 text-[#1A1A1A] hover:text-[#00A9B5] cursor-pointer"
+            >
+              <User size={20} />
+              <span className="text-[9.5px]">Profil</span>
+            </button>
+          </div>
         </nav>
       </div>
 

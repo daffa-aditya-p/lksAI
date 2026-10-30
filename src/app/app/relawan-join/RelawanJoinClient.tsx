@@ -141,9 +141,9 @@ export default function RelawanJoinClient({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-12 font-sans text-slate-800">
-      {/* WRAPPER KONTEN (Format Mobile Centered) */}
-      <div className="mx-auto max-w-md bg-white min-h-screen sm:min-h-[92vh] sm:my-4 sm:rounded-[32px] sm:shadow-2xl sm:border sm:border-slate-100 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-appBg font-sans text-slate-800 flex flex-col items-center">
+      {/* WRAPPER KONTEN */}
+      <div className="w-full max-w-[480px] lg:max-w-2xl bg-white min-h-screen border-x border-gray-100/80 shadow-sm flex flex-col relative pb-12">
 
         {/* HEADER BAR */}
         <header className="sticky top-0 z-20 flex items-center gap-3 bg-white/95 backdrop-blur-md px-5 py-4 border-b border-slate-100">
