@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 import QRCode from "qrcode";
 import { Button, Card, LevelBadge } from "@/components/ui";
